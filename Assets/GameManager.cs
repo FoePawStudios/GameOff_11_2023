@@ -25,8 +25,7 @@ public class GameManager : MonoBehaviour
     {
         //Check for mouse-over on scalable objects using raycast
         Vector2 mousePosV3 = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-
-        foreach( GameObject scalableObject in GameObject.FindGameObjectsWithTag("ScalableObject") )
+        foreach( GameObject scalableObject in GameObject.FindGameObjectsWithTag("Scalable") )
         {
             if( scalableObject.GetComponent<Collider2D>().OverlapPoint( new Vector2(mousePosV3.x, mousePosV3.y) ) )
             {

@@ -5,6 +5,10 @@ TagManager:
   serializedVersion: 2
   tags:
   - ScalableObject
+  - ShoulderPivot
+  - Gun
+  - ShootProjection
+  - gunExit
   layers:
   - Default
   - TransparentFX
