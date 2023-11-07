@@ -6,6 +6,8 @@ public class PlayerController : MonoBehaviour
 {
     public float xSpeed = 3;
     public float jumpVel = 20;
+    public float scaleRate = 50;
+    public LayerMask scalableLayer;
     private Vector2 inputVector;
     private Animator animator;
     private SpriteRenderer spriteRenderer;
@@ -16,6 +18,7 @@ public class PlayerController : MonoBehaviour
     private GameObject gun;
     private GameObject gunExit;
     private GameObject ShootProjection;
+    private GameObject aimingAt;
     private bool isMoving;
     public bool isGrounded { get; set; }
     private bool jumpLeftGround = true;
@@ -40,13 +43,12 @@ public class PlayerController : MonoBehaviour
         handleMovement();
         handleJump();
         pointGunAtMouse();
-
-
     }
 
     private void FixedUpdate()
     {
         moveProjectedShot();
+        handleScalingAtDistance();
     }
 
     void handleMovement()
@@ -98,18 +100,68 @@ public class PlayerController : MonoBehaviour
     void moveProjectedShot()
     {
         //Shoot ray from gun exit to find anything on the scalable layer that it would collide with
-        RaycastHit2D rayHit = Physics2D.Raycast(gunExit.transform.position, gunExit.transform.up, Mathf.Infinity, 1 << LayerMask.NameToLayer("Scalable") );
+        RaycastHit2D rayHit = Physics2D.Raycast(gunExit.transform.position, gunExit.transform.up, Mathf.Infinity, scalableLayer.value );
 
-        if (rayHit.rigidbody == null)
+        if (rayHit.transform == null)
         {
             ShootProjection.SetActive(false);
+            aimingAt = null;
             return;
         }
 
         ShootProjection.SetActive(true);
         ShootProjection.transform.position = rayHit.point;
+
+        aimingAt = rayHit.transform.gameObject;
+
     }
 
+    void handleScalingAtDistance()
+    {
+
+        if( aimingAt != null )
+        {
+            if (Input.mouseScrollDelta.y != 0)
+            {
+                float minScale = aimingAt.GetComponent<ScalableObject>().minScale;
+                float maxScale = aimingAt.GetComponent<ScalableObject>().maxScale;
+
+                float scaleChange = (Input.mouseScrollDelta.y * Time.fixedDeltaTime * scaleRate);
+                Vector3 tempScale = aimingAt.transform.localScale;
+                tempScale.x = tempScale.x + scaleChange;
+                tempScale.y = tempScale.y + scaleChange;
+
+                //If shrinking would cause object to be smaller than minimum, just set to minimum
+                if (tempScale.x < minScale)
+                {
+                    float overshoot = minScale - tempScale.x;
+                    tempScale.x = tempScale.x + overshoot;
+                    tempScale.y = tempScale.y + overshoot;
+                }
+                else if (tempScale.x > maxScale)
+                {
+                    float overshoot = tempScale.x - maxScale;
+                    tempScale.x = tempScale.x - overshoot;
+                    tempScale.y = tempScale.y - overshoot;
+                }
+
+                if (tempScale.y < minScale)
+                {
+                    float overshoot = minScale - tempScale.y;
+                    tempScale.x = tempScale.x + overshoot;
+                    tempScale.y = tempScale.y + overshoot;
+                }
+                else if (tempScale.y > maxScale)
+                {
+                    float overshoot = tempScale.y - maxScale;
+                    tempScale.x = tempScale.x - overshoot;
+                    tempScale.y = tempScale.y - overshoot;
+                }
+
+                aimingAt.transform.localScale = tempScale;
+            }
+        }
+    }
 
 
 }

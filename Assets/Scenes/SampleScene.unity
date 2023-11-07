@@ -394,7 +394,7 @@ GameObject:
   - component: {fileID: 605178538}
   m_Layer: 0
   m_Name: Square (1)
-  m_TagString: Untagged
+  m_TagString: ScalableObject
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -606,7 +606,7 @@ GameObject:
   - component: {fileID: 799950926}
   m_Layer: 0
   m_Name: Floor
-  m_TagString: Untagged
+  m_TagString: Floor
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -885,7 +885,7 @@ GameObject:
   - component: {fileID: 1209598303}
   m_Layer: 0
   m_Name: Square (2)
-  m_TagString: Untagged
+  m_TagString: ScalableObject
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1063,6 +1063,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   xSpeed: 3
   jumpVel: 20
+  scaleRate: 50
 --- !u!212 &1294249984
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1203,6 +1204,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1468652400}
   - component: {fileID: 1468652399}
+  - component: {fileID: 1468652401}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -1222,9 +1224,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7602758b4ece1f4a92e721f15e111d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scaleRate: 50
-  defaultMinScale: 1
-  defaultMaxScale: 10
+  scalableScript: {fileID: 1468652401}
+  scalableLayer:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!4 &1468652400
 Transform:
   m_ObjectHideFlags: 0
@@ -1240,6 +1243,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1468652401
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1468652398}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15c79b70b5ac68e4585244d517be7e84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minScale: 1
+  maxScale: 10
 --- !u!1 &1678728035
 GameObject:
   m_ObjectHideFlags: 0
@@ -1252,10 +1269,9 @@ GameObject:
   - component: {fileID: 1678728038}
   - component: {fileID: 1678728037}
   - component: {fileID: 1678728036}
-  - component: {fileID: 1678728040}
   m_Layer: 0
   m_Name: Triangle
-  m_TagString: ScalableObject
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1402,18 +1418,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1678728040
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1678728035}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 15c79b70b5ac68e4585244d517be7e84, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1839430905
 GameObject:
   m_ObjectHideFlags: 0
@@ -1427,7 +1431,7 @@ GameObject:
   - component: {fileID: 1839430906}
   m_Layer: 0
   m_Name: Square
-  m_TagString: Untagged
+  m_TagString: ScalableObject
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

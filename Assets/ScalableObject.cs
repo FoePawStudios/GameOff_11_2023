@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class ScalableObject : MonoBehaviour
 {
-    public float scaleRate = 50f;
     public float minScale = 1f;
     public float maxScale = 10f;
 
