@@ -4,25 +4,20 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    public float xSpeed = 3;
-    public float jumpVel = 20;
-    public float scaleRate = 50;
+    public float horizontalSpeed = 5;
+    public float jumpSpeed = 8;
+    public float jumpCooldown = 1;
+    public float scaleRate = 30;
     public LayerMask scalableLayer;
     private Vector2 inputVector;
-    private Animator animator;
-    private SpriteRenderer spriteRenderer;
     private Rigidbody2D rigidBody2d;
-    private Vector2 facingDir;
-    private BoxCollider2D groundCollider;
     private GameObject shoulderPivot;
-    private GameObject gun;
     private GameObject gunExit;
     private GameObject ShootProjection;
     private GameObject aimingAt;
-    private bool isMoving;
     public bool isGrounded { get; set; }
-    private bool jumpLeftGround = true;
     private float shoulderGunYOffset;
+    private float lastJump;
 
     // Start is called before the first frame update
     void Start()
@@ -30,18 +25,18 @@ public class PlayerController : MonoBehaviour
         inputVector = new(0.0f, 0.0f);
         rigidBody2d = gameObject.GetComponent<Rigidbody2D>();
         shoulderPivot = GameObject.FindGameObjectWithTag("ShoulderPivot");
-        gun = GameObject.FindGameObjectWithTag("Gun");
         gunExit = GameObject.FindGameObjectWithTag("gunExit");
         ShootProjection = GameObject.FindGameObjectWithTag("ShootProjection");
         //TO DO: maybe replace this with actual distance between two lines instead of depending on the lines starting parallel pointing forwards
         shoulderGunYOffset = Mathf.Abs( shoulderPivot.transform.position.y - gunExit.transform.position.y );
+        lastJump = 0;
+        isGrounded = false;
     }
 
     // Update is called once per frame
     void Update()
     {
         handleMovement();
-        handleJump();
         pointGunAtMouse();
     }
 
@@ -53,27 +48,27 @@ public class PlayerController : MonoBehaviour
 
     void handleMovement()
     {
-        //Handle Movement Input
+        //Handle Horizontal Input
         if (Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0.1) // || Mathf.Abs(Input.GetAxisRaw("Vertical")) > 0)
         {
-            inputVector.Set(Input.GetAxisRaw("Horizontal") * xSpeed, 0f);
+            inputVector.Set(Input.GetAxisRaw("Horizontal") * horizontalSpeed, 0f);
             gameObject.transform.Translate(inputVector * Time.deltaTime);
         }
-    }
 
-    void handleJump()
-    {
-        if (!jumpLeftGround && !isGrounded)
+        //Handle Jump Input
+        if( isGrounded )
         {
-            jumpLeftGround = true;
+            if (Input.GetAxisRaw("Vertical") > 0.1 || Input.GetKeyDown(KeyCode.Space)) // || Mathf.Abs(Input.GetAxisRaw("Vertical")) > 0)
+            {
+                //If we are off jump cooldown
+                if (Time.time - lastJump > jumpCooldown)
+                { 
+                    lastJump = Time.time;
+                    rigidBody2d.velocity = Vector2.up * jumpSpeed;
+                }
+            }
         }
-
-        if (jumpLeftGround && isGrounded && (Input.GetAxisRaw("Vertical") > 0.1 || Input.GetKeyDown(KeyCode.Space))) // || Mathf.Abs(Input.GetAxisRaw("Vertical")) > 0)
-        {
-            jumpLeftGround = false;
-
-            rigidBody2d.velocity = Vector2.up * jumpVel;
-        }
+        
     }
 
     void pointGunAtMouse()
@@ -118,50 +113,20 @@ public class PlayerController : MonoBehaviour
 
     void handleScalingAtDistance()
     {
-
-        if( aimingAt != null )
+        if( aimingAt != null && Input.mouseScrollDelta.y != 0)
         {
-            if (Input.mouseScrollDelta.y != 0)
-            {
-                float minScale = aimingAt.GetComponent<ScalableObject>().minScale;
-                float maxScale = aimingAt.GetComponent<ScalableObject>().maxScale;
-
-                float scaleChange = (Input.mouseScrollDelta.y * Time.fixedDeltaTime * scaleRate);
-                Vector3 tempScale = aimingAt.transform.localScale;
-                tempScale.x = tempScale.x + scaleChange;
-                tempScale.y = tempScale.y + scaleChange;
-
-                //If shrinking would cause object to be smaller than minimum, just set to minimum
-                if (tempScale.x < minScale)
-                {
-                    float overshoot = minScale - tempScale.x;
-                    tempScale.x = tempScale.x + overshoot;
-                    tempScale.y = tempScale.y + overshoot;
-                }
-                else if (tempScale.x > maxScale)
-                {
-                    float overshoot = tempScale.x - maxScale;
-                    tempScale.x = tempScale.x - overshoot;
-                    tempScale.y = tempScale.y - overshoot;
-                }
-
-                if (tempScale.y < minScale)
-                {
-                    float overshoot = minScale - tempScale.y;
-                    tempScale.x = tempScale.x + overshoot;
-                    tempScale.y = tempScale.y + overshoot;
-                }
-                else if (tempScale.y > maxScale)
-                {
-                    float overshoot = tempScale.y - maxScale;
-                    tempScale.x = tempScale.x - overshoot;
-                    tempScale.y = tempScale.y - overshoot;
-                }
-
-                aimingAt.transform.localScale = tempScale;
-            }
+            aimingAt.GetComponent<ScalableObject>().changeScale(Input.mouseScrollDelta.y * Time.fixedDeltaTime * scaleRate);
         }
     }
 
+    void OnTriggerEnter2D(Collider2D collider)
+    {
+        isGrounded = true;
+    }
+
+    void OnTriggerExit2D(Collider2D collider)
+    {
+        isGrounded = false;
+    }
 
 }

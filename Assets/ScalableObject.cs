@@ -4,15 +4,16 @@ using UnityEngine;
 
 public class ScalableObject : MonoBehaviour
 {
+    private Vector3 startScale;
+    private float currentScale = 1f;
     public float minScale = 1f;
     public float maxScale = 10f;
 
     // Start is called before the first frame update
     void Start()
     {
-        //add object to scalable layer
-        //add scalable tag
-        //require collider
+        startScale = gameObject.transform.localScale;
+
     }
 
     // Update is called once per frame
@@ -24,4 +25,23 @@ public class ScalableObject : MonoBehaviour
     private void FixedUpdate()
     {
     }
+
+    public void changeScale(float changeAmount)
+    {
+        currentScale = currentScale + changeAmount;
+
+        if (currentScale < minScale) 
+        {
+            currentScale = minScale;
+        }
+        if (currentScale > maxScale)
+        {
+            currentScale = maxScale;
+        }
+
+        gameObject.transform.localScale = startScale * currentScale;
+
+
+    }
+
 }

@@ -10,6 +10,8 @@ TagManager:
   - ShootProjection
   - gunExit
   - Floor
+  - feet
+  - Ground
   layers:
   - Default
   - TransparentFX
