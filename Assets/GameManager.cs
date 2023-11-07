@@ -4,6 +4,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -32,10 +33,23 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //Handle Movement Input
+        //Check for user wanting to quit
         if (Input.GetKeyUp( KeyCode.Escape ) ) 
         {
             Application.Quit();
         }
+
+        //Check for user wanting to restart
+        if (Input.GetKeyUp(KeyCode.R))
+        {
+            RestartScene();
+        }
+
+    }
+
+    void RestartScene()
+    {
+        int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
+        SceneManager.LoadScene(currentSceneIndex);
     }
 }
