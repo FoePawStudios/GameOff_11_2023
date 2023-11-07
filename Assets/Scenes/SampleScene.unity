@@ -1064,6 +1064,9 @@ MonoBehaviour:
   xSpeed: 3
   jumpVel: 20
   scaleRate: 50
+  scalableLayer:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!212 &1294249984
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1271,7 +1274,7 @@ GameObject:
   - component: {fileID: 1678728036}
   m_Layer: 0
   m_Name: Triangle
-  m_TagString: Untagged
+  m_TagString: ScalableObject
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
