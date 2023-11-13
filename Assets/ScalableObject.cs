@@ -18,9 +18,7 @@ public class ScalableObject : MonoBehaviour
     private GameObject playerObject;
     
     private float throwablePercentOfPlayer = .35f; //capsule height 512, circle 256
-
-    private float scaleStartTime;
-    private float scaleStartVect;
+    private bool isFixedObject;
 
     // Start is called before the first frame update
     void Start()
@@ -37,7 +35,7 @@ public class ScalableObject : MonoBehaviour
         spriteTexture = gameObject.GetComponent<SpriteRenderer>().sprite.texture;
         playerObject = GameObject.FindGameObjectWithTag("Player");
         calcThrowableScale();
-
+        calcFixedPhysics();
         lerpSpeed = 20f;
     }
 
@@ -58,7 +56,7 @@ public class ScalableObject : MonoBehaviour
     public void scaleToMax()
     {
         //scaleStartTime = Time.time;
-        targetScale = getMaxScale();
+        targetScale = .9f * getMaxScale();
     }
     public void scaleToMin()
     {
@@ -105,6 +103,27 @@ public class ScalableObject : MonoBehaviour
         minScale = originalScale * (targetHeightRealPx / startRadiusRealPx);
     }
 
+    private void calcFixedPhysics()
+    {
+        Rigidbody2D rb = gameObject.GetComponent<Rigidbody2D>();
+        if(!rb)
+        {
+            isFixedObject = true;
+            return;
+        }
+
+        bool isXPositionFrozen = (rb.constraints & RigidbodyConstraints2D.FreezePositionX) != 0;
+        bool isYPositionFrozen = (rb.constraints & RigidbodyConstraints2D.FreezePositionY) != 0;
+
+        if( isXPositionFrozen || isYPositionFrozen)
+        {
+            isFixedObject = true;
+            return;
+        }
+
+        isFixedObject = false;
+    }
+
     public Vector3 getMaxScale()
     {
         //check 8 directions for raycast distance 
@@ -114,7 +133,7 @@ public class ScalableObject : MonoBehaviour
 
         foreach (Vector2 direction in directions)
         {
-            float tempScale = getScaleMaxInDirection(direction);
+            float tempScale = getScaleMaxOnAxis(direction);
             if(tempScale < maxScale)
             {
                 maxScale = tempScale;
@@ -129,9 +148,42 @@ public class ScalableObject : MonoBehaviour
         return maxScale * gameObject.transform.localScale;
     }
 
-    public float getScaleMaxInDirection(Vector2 direction)
+    public float getScaleMaxOnAxis(Vector2 direction)
     {
-        //float.MaxValue, Mathf.Infinity
+        float directionMaxDist = 0f;
+        float directionCurrentDist = 0f;
+        float directionRatio = getScaleMaxInDirection(direction, out directionMaxDist, out directionCurrentDist);
+
+        //If this isn't a fixed object and the first ray didn't hit anything we can return early
+        if(!isFixedObject && directionRatio == Mathf.Infinity)
+        {
+            return directionMaxDist;
+        }
+
+        float oppositeMaxDist = 0f;
+        float oppositeCurrentDist = 0f;
+        float oppositeRatio = getScaleMaxInDirection(-direction, out oppositeMaxDist, out oppositeCurrentDist);
+
+        //If this is a fixed object return the smaller of the two directions it can scale on the axis
+        if(isFixedObject)
+        {
+            return Mathf.Min(directionRatio, oppositeRatio);
+        }
+        
+        //if this isn't a fixed object and the second measurement we took was infinity, just return infinity
+        if(oppositeRatio == Mathf.Infinity)
+        {
+            return oppositeRatio;
+        }
+
+
+        return (directionMaxDist + oppositeMaxDist) / (directionCurrentDist + oppositeCurrentDist);
+    }
+
+    public float getScaleMaxInDirection(Vector2 direction, out float maxDistance, out float currentDistance )
+    {
+        maxDistance = Mathf.Infinity;
+        currentDistance = Mathf.Infinity;
         Collider2D collider = gameObject.GetComponent<Collider2D>();
 
         if (!collider)
@@ -143,15 +195,17 @@ public class ScalableObject : MonoBehaviour
         RaycastHit2D directionFarHit = shootColliderRay(direction);
 
         //if we don't hit something, we can scale as much as we want
-        if(!directionFarHit.collider)
+        if (!directionFarHit.collider)
         {
             return Mathf.Infinity;
         }
 
-        //shoot a ray from the point we hit back at ourselves for a more exact distance
+        //Calculate the max distance our object can scale to
+        maxDistance = Vector2.Distance(directionFarHit.point, collider.transform.position);
 
+        //shoot a ray from the point we hit back at ourselves for a more exact distance
         //take a 10% step towards original collider to avoid self-collision, and make end-estimate not actually hit walls 
-        float rayDistance = Vector2.Distance( collider.transform.position, directionFarHit.point);
+        float rayDistance = Vector2.Distance(collider.transform.position, directionFarHit.point);
         Vector2 smallStep = new Vector2(directionFarHit.point.x, directionFarHit.point.y);
         smallStep = smallStep + (-direction * .1f * rayDistance);
 
@@ -162,41 +216,12 @@ public class ScalableObject : MonoBehaviour
             return Mathf.Infinity;
         }
 
-        //do the same thing in the opposite direction
-        RaycastHit2D oppositeFarHit = shootColliderRay(-direction);
+        currentDistance = Vector2.Distance(directionColliderHit.point, collider.transform.position);
 
-        //if we don't hit something, we can scale as much as we want
-        if (!oppositeFarHit.collider)
-        {
-            return Mathf.Infinity;
-        }
-
-        //take a 10% step towards original collider to avoid self-collision, and make end-estimate not actually hit walls 
-        rayDistance = Vector2.Distance(collider.transform.position, oppositeFarHit.point);
-        smallStep = new Vector2(oppositeFarHit.point.x, oppositeFarHit.point.y);
-        smallStep = smallStep + (direction * .1f * rayDistance);
-
-        //shoot a ray from the point we hit back at ourselves for a more exact distance
-        RaycastHit2D oppositeColliderHit = Physics2D.Raycast(smallStep, direction);//shootColliderRay(direction, oppositeFarHit.collider);//Physics2D.Raycast(oppositeFarHit.point, direction);
-
-        if (!oppositeColliderHit.collider)
-        {
-            return Mathf.Infinity;
-        }
-
-
-        //Debug.DrawRay(directionFarHit.point, Vector2.up, Color.red);
-        //Debug.DrawRay(oppositeFarHit.point, Vector2.up, Color.green);
-        //Debug.DrawRay(directionColliderHit.point, Vector2.up, Color.blue);
-        //Debug.DrawRay(oppositeColliderHit.point, Vector2.up, Color.yellow);
-
-        //Debug.DrawLine(directionFarHit.point, oppositeFarHit.point, Color.blue);//new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f)));
-        //Debug.DrawLine(directionColliderHit.point, oppositeColliderHit.point, Color.red);// new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f)));
-
-        return Vector2.Distance(directionFarHit.point, oppositeFarHit.point) / Vector2.Distance(directionColliderHit.point, oppositeColliderHit.point);
+        return maxDistance / currentDistance;
     }
 
-    public RaycastHit2D shootColliderRay(Vector2 direction)
+        public RaycastHit2D shootColliderRay(Vector2 direction)
     {
         Collider2D collider = gameObject.GetComponent<Collider2D>();
         //set up hit array for output

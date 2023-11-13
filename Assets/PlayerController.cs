@@ -1,12 +1,13 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public enum GunMode
 {
-    MaxScale,
-    OriginalScale,
-    MinScale
+    Max_Scale,
+    Original_Scale,
+    Min_Scale
 }
 
 public class PlayerController : MonoBehaviour
@@ -25,7 +26,7 @@ public class PlayerController : MonoBehaviour
     public bool isGrounded { get; set; }
     private float shoulderGunYOffset;
     private float lastJump;
-    private GunMode gunMode;
+    public GunMode gunMode;
 
     // Start is called before the first frame update
     void Start()
@@ -35,11 +36,11 @@ public class PlayerController : MonoBehaviour
         shoulderPivot = GameObject.FindGameObjectWithTag("ShoulderPivot");
         gunExit = GameObject.FindGameObjectWithTag("gunExit");
         ShootProjection = GameObject.FindGameObjectWithTag("ShootProjection");
-        //TO DO: maybe replace this with actual distance between two lines instead of depending on the lines starting parallel pointing forwards
         shoulderGunYOffset = Mathf.Abs( shoulderPivot.transform.position.y - gunExit.transform.position.y );
         lastJump = 0;
         isGrounded = false;
-        gunMode = GunMode.MaxScale;
+        gunMode = GunMode.Max_Scale;
+
     }
 
     // Update is called once per frame
@@ -47,12 +48,13 @@ public class PlayerController : MonoBehaviour
     {
         handleMovement();
         pointGunAtMouse();
+        handleGunActions();
     }
 
     private void FixedUpdate()
     {
         moveProjectedShot();
-        handleGunActions();
+        
     }
 
     void handleMovement()
@@ -122,6 +124,16 @@ public class PlayerController : MonoBehaviour
 
     void handleGunActions()
     {
+
+        if (Input.GetKeyUp(KeyCode.E))
+        {
+            nextGunMode();
+        }
+        else if (Input.GetKeyUp(KeyCode.Q))
+        {
+            previousGunMode();
+        }
+
         if (aimingAt == null) return;
 
         if( Input.mouseScrollDelta.y != 0)
@@ -131,20 +143,46 @@ public class PlayerController : MonoBehaviour
         Debug.Log(Input.GetMouseButtonUp(1));
         if( Input.GetMouseButtonUp(1) )
         {
-            if(gunMode == GunMode.MaxScale)
+            if(gunMode == GunMode.Max_Scale)
             {
                 aimingAt.GetComponent<ScalableObject>().scaleToMax();
             }
-            else if(gunMode == GunMode.MinScale)
+            else if(gunMode == GunMode.Min_Scale)
             {
                 aimingAt.GetComponent<ScalableObject>().scaleToMin();
             }
             else
             {
-                aimingAt.GetComponent<ScalableObject>().scaleToMin();
+                aimingAt.GetComponent<ScalableObject>().scaleToStart();
             }
-            
         }
+    }
+
+    void nextGunMode()
+    {
+        int gunModeInt = (int)gunMode;
+        gunModeInt++;
+
+        if (gunModeInt > Enum.GetValues(typeof(GunMode)).Length-1 ) 
+        {
+            gunModeInt = 0;
+        }
+
+        gunMode = (GunMode)gunModeInt;
+
+    }
+
+    void previousGunMode()
+    {
+        int gunModeInt = (int)gunMode;
+        gunModeInt--;
+
+        if (gunModeInt < 0)
+        {
+            gunModeInt = Enum.GetValues(typeof(GunMode)).Length - 1;
+        }
+
+        gunMode = (GunMode)gunModeInt;
     }
 
     void OnTriggerEnter2D(Collider2D collider)

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -10,6 +11,9 @@ public class GameManager : MonoBehaviour
 {
     public ScalableObject scalableScript;
     public LayerMask scalableLayer;
+    private GameObject player;
+    private GameObject HUD;
+    private GameObject GunSelectUI;
 
     // Start is called before the first frame update
     void Start()
@@ -28,6 +32,10 @@ public class GameManager : MonoBehaviour
             //add the object to the scalable layer
             scalableObject.layer = 6;
         }
+
+        player = GameObject.FindGameObjectWithTag("Player");
+        HUD = GameObject.FindGameObjectWithTag("HUD");
+        GunSelectUI = GameObject.Find("SelectedGun");
     }
 
     // Update is called once per frame
@@ -44,12 +52,26 @@ public class GameManager : MonoBehaviour
         {
             RestartScene();
         }
-
+        updateHUD();
     }
 
     void RestartScene()
     {
         int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
         SceneManager.LoadScene(currentSceneIndex);
+    }
+
+    void updateHUD()
+    {
+        updateGunSelect();
+    }
+    void updateGunSelect()
+    {//"SelectedGun (TMPro.TextMeshProUGUI)"
+        string currentGunSelection = player.GetComponent<PlayerController>().gunMode.ToString().Replace("_"," ") ;
+        TextMeshProUGUI displayGunMode = GunSelectUI.GetComponent<TextMeshProUGUI>();
+        if (displayGunMode.text != currentGunSelection)
+        {
+            displayGunMode.text = currentGunSelection;
+        }
     }
 }
