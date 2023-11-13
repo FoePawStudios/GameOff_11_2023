@@ -2,6 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum GunMode
+{
+    MaxScale,
+    OriginalScale,
+    MinScale
+}
+
 public class PlayerController : MonoBehaviour
 {
     public float horizontalSpeed = 5;
@@ -18,6 +25,7 @@ public class PlayerController : MonoBehaviour
     public bool isGrounded { get; set; }
     private float shoulderGunYOffset;
     private float lastJump;
+    private GunMode gunMode;
 
     // Start is called before the first frame update
     void Start()
@@ -31,6 +39,7 @@ public class PlayerController : MonoBehaviour
         shoulderGunYOffset = Mathf.Abs( shoulderPivot.transform.position.y - gunExit.transform.position.y );
         lastJump = 0;
         isGrounded = false;
+        gunMode = GunMode.MaxScale;
     }
 
     // Update is called once per frame
@@ -43,7 +52,7 @@ public class PlayerController : MonoBehaviour
     private void FixedUpdate()
     {
         moveProjectedShot();
-        handleScalingAtDistance();
+        handleGunActions();
     }
 
     void handleMovement()
@@ -111,11 +120,30 @@ public class PlayerController : MonoBehaviour
 
     }
 
-    void handleScalingAtDistance()
+    void handleGunActions()
     {
-        if( aimingAt != null && Input.mouseScrollDelta.y != 0)
+        if (aimingAt == null) return;
+
+        if( Input.mouseScrollDelta.y != 0)
         {
             aimingAt.GetComponent<ScalableObject>().changeScale(Input.mouseScrollDelta.y * Time.fixedDeltaTime * scaleRate);
+        }
+        Debug.Log(Input.GetMouseButtonUp(1));
+        if( Input.GetMouseButtonUp(1) )
+        {
+            if(gunMode == GunMode.MaxScale)
+            {
+                aimingAt.GetComponent<ScalableObject>().scaleToMax();
+            }
+            else if(gunMode == GunMode.MinScale)
+            {
+                aimingAt.GetComponent<ScalableObject>().scaleToMin();
+            }
+            else
+            {
+                aimingAt.GetComponent<ScalableObject>().scaleToMin();
+            }
+            
         }
     }
 
