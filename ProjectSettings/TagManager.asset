@@ -12,6 +12,7 @@ TagManager:
   - Floor
   - feet
   - Ground
+  - HUD
   layers:
   - Default
   - TransparentFX
