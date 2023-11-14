@@ -18,6 +18,7 @@ public class HUD : MonoBehaviour
         player = GameObject.FindGameObjectWithTag("Player");
         HUDObject = GameObject.FindGameObjectWithTag("HUD");
         GunSelectUI = GameObject.Find("SelectedGun");
+        GunSelectUI.SetActive(false);
     }
 
     // Update is called once per frame
@@ -26,17 +27,9 @@ public class HUD : MonoBehaviour
         updateHUD();
     }
 
-    void positionHUD()
-    {
-
-        RectTransform rectTransform = GunSelectUI.GetComponent<RectTransform>();
-        float xPos = -(lastScreenWidth / 2) + (rectTransform.rect.width /2);
-
-    }
-
     void updateHUD()
     {
-        updateGunSelect();
+        //updateGunSelect();
     }
 
     void updateGunSelect()

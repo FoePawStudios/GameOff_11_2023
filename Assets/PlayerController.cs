@@ -125,14 +125,14 @@ public class PlayerController : MonoBehaviour
     void handleGunActions()
     {
 
-        if (Input.GetKeyUp(KeyCode.E))
+        /*if (Input.GetKeyUp(KeyCode.E))
         {
             nextGunMode();
         }
         else if (Input.GetKeyUp(KeyCode.Q))
         {
             previousGunMode();
-        }
+        }*/
 
         if (aimingAt == null) return;
 
@@ -140,22 +140,25 @@ public class PlayerController : MonoBehaviour
         {
             aimingAt.GetComponent<ScalableObject>().changeScale(Input.mouseScrollDelta.y * Time.fixedDeltaTime * scaleRate);
         }
-        Debug.Log(Input.GetMouseButtonUp(1));
-        if( Input.GetMouseButtonUp(1) )
+
+        //left click
+        if (Input.GetMouseButtonUp(0))
         {
-            if(gunMode == GunMode.Max_Scale)
-            {
-                aimingAt.GetComponent<ScalableObject>().scaleToMax();
-            }
-            else if(gunMode == GunMode.Min_Scale)
-            {
-                aimingAt.GetComponent<ScalableObject>().scaleToMin();
-            }
-            else
-            {
-                aimingAt.GetComponent<ScalableObject>().scaleToStart();
-            }
+            aimingAt.GetComponent<ScalableObject>().scaleToMin();
         }
+
+        //right click
+        if ( Input.GetMouseButtonUp(1) )
+        {
+            aimingAt.GetComponent<ScalableObject>().scaleToMax();
+        }
+
+        //middle mouse click
+        if (Input.GetMouseButtonUp(2))
+        {
+            aimingAt.GetComponent<ScalableObject>().scaleToStart();
+        }
+
     }
 
     void nextGunMode()

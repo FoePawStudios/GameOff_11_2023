@@ -42,7 +42,7 @@ public class ScalableObject : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //Debug.Log(getMaxScale());
+
     }
 
     private void FixedUpdate()
