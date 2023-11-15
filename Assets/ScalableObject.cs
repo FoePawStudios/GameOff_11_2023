@@ -18,7 +18,7 @@ public class ScalableObject : MonoBehaviour
     private GameObject playerObject;
     
     private float throwablePercentOfPlayer = .35f; //capsule height 512, circle 256
-    private bool isFixedObject;
+    public bool isFixedObject;
 
     // Start is called before the first frame update
     void Start()

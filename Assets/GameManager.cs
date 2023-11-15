@@ -38,7 +38,7 @@ public class GameManager : MonoBehaviour
         //Check for user wanting to quit
         if (Input.GetKeyUp( KeyCode.Escape ) ) 
         {
-            Application.Quit();
+            Application.Quit();        
         }
 
         //Check for user wanting to restart
