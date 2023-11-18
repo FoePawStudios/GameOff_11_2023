@@ -564,7 +564,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 10
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -925,6 +925,7 @@ MonoBehaviour:
   scalableLayer:
     serializedVersion: 2
     m_Bits: 64
+  debugOn: 1
 --- !u!4 &1468652400
 Transform:
   m_ObjectHideFlags: 0
@@ -1115,10 +1116,11 @@ Transform:
   m_GameObject: {fileID: 1778115107}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -14.57, y: 12.49, z: 0}
+  m_LocalPosition: {x: -24.44, y: 11.48, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1854075779}
   - {fileID: 62757521}
   - {fileID: 907027883}
   m_Father: {fileID: 0}
@@ -1217,7 +1219,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
-  m_Color: {r: 0.91974497, g: 0, b: 1, a: 0.5019608}
+  m_Color: {r: 0.45098042, g: 0.8078432, b: 0.80392164, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -1235,12 +1237,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1854075777}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -10.000001, y: 18.359999, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 14.44, y: 6.879999, z: 0}
   m_LocalScale: {x: 0.38434604, y: 0.38434604, z: 0.38434604}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1778115112}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
@@ -1250,7 +1252,6 @@ SceneRoots:
   - {fileID: 207900550}
   - {fileID: 619394802}
   - {fileID: 1468652400}
-  - {fileID: 1854075779}
   - {fileID: 856964256}
   - {fileID: 1778115112}
   - {fileID: 679348295}
