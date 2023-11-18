@@ -11,6 +11,8 @@ public class GameManager : MonoBehaviour
 {
     public ScalableObject scalableScript;
     public LayerMask scalableLayer;
+    public bool debugOn = false;
+    private bool isPaused = false;
 
     // Start is called before the first frame update
     void Start()
@@ -35,6 +37,12 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (debugOn && Input.GetKeyUp(KeyCode.P))
+        {
+            return;
+        }
+
+
         //Check for user wanting to quit
         if (Input.GetKeyUp( KeyCode.Escape ) ) 
         {

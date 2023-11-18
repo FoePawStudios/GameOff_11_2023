@@ -29,14 +29,14 @@
         },
         "C:/Users/mccar/Documents/Unity Projects/GameOff2023/Assets/Maps/Rules/TemplateRuleStep1.tmx": {
             "expandedGroupLayers": [
-                7,
-                6
+                6,
+                7
             ],
             "scale": 4,
-            "selectedLayer": -1,
+            "selectedLayer": 0,
             "viewCenter": {
-                "x": 100.75,
-                "y": 10
+                "x": 100.25,
+                "y": 57.5
             }
         },
         "C:/Users/mccar/Documents/Unity Projects/GameOff2023/Assets/Maps/Rules/TemplateRuleStep2.tmx": {
@@ -49,18 +49,18 @@
         },
         "C:/Users/mccar/Documents/Unity Projects/GameOff2023/Assets/Maps/Rules/TemplateRuleStep3.tmx": {
             "scale": 4,
-            "selectedLayer": 0,
+            "selectedLayer": 1,
             "viewCenter": {
-                "x": 38.25,
-                "y": 59.5
+                "x": 38,
+                "y": 59.25
             }
         },
         "C:/Users/mccar/Documents/Unity Projects/GameOff2023/Assets/Maps/TestLevel.tmx": {
-            "scale": 2,
+            "scale": 4,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 112,
-                "y": -93.5
+                "x": -134.75,
+                "y": -156.25
             }
         },
         "C:/Users/mccar/Documents/Unity Projects/GameOff2023/LevelTiles/TemplateTileset.tsx": {
@@ -87,10 +87,10 @@
     ],
     "project": "GameOff2023.tiled-project",
     "recentFiles": [
-        "C:/Users/mccar/Documents/Unity Projects/GameOff2023/Assets/Maps/TestLevel.tmx",
+        "LevelTileset.tsx",
         "BrickTileset.tsx",
         "TemplateTileset.tsx",
-        "LevelTileset.tsx",
+        "C:/Users/mccar/Documents/Unity Projects/GameOff2023/Assets/Maps/TestLevel.tmx",
         "C:/Users/mccar/Documents/Unity Projects/GameOff2023/Assets/Maps/Rules/TemplateRuleStep1.tmx",
         "C:/Users/mccar/Documents/Unity Projects/GameOff2023/Assets/Maps/Rules/TemplateRuleStep3.tmx",
         "C:/Users/mccar/Documents/Unity Projects/GameOff2023/Assets/Maps/Rules/TemplateRuleStep2.tmx",

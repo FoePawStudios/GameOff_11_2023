@@ -65,14 +65,10 @@ public class PlayerController : MonoBehaviour
     {
         //handle grabbing objects
         moveGrabbedObject();
-
-        Debug.DrawRay(gameObject.transform.position, Vector2.up, Color.green);
-        Debug.DrawRay(gameObject.transform.position, Vector2.right, Color.red);
-        
-        Debug.DrawRay(gameObject.transform.position, Physics2D.gravity * gameObject.GetComponent<Rigidbody2D>().gravityScale, Color.red);
-
-
     }
+
+    
+
 
     public void checkDragging()
     {
@@ -166,12 +162,39 @@ public class PlayerController : MonoBehaviour
         //Get the mouse position
         Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
+        //if the mouse position is behind the character, flip the character
+        if (mousePos.x < gameObject.transform.position.x ) 
+        {
+            if (isFacingRight())
+            {
+                flipPlayerHorizontal();
+            }
+        }
+        else
+        {
+            if (!isFacingRight())
+            {
+                flipPlayerHorizontal();
+            }
+        }
+
+        
+
         //First get the amount to rotate the shoulder to look at the mouse point
         Vector3 gunPointVector = new Vector3(mousePos.x - gunObject.transform.position.x, mousePos.y - gunObject.transform.position.y);
+
+        Debug.DrawRay(gunObject.transform.position, gunPointVector, Color.blue);
+
         gunPointVector = gunPointVector.normalized;
 
-        float absoluteRotation = Mathf.Rad2Deg * Mathf.Atan2(gunPointVector.y, gunPointVector.x);
+        //If we are flipped, flip the vector to match
+        if(!isFacingRight())
+        {
+            gunPointVector.x *= -1;
+        }
 
+
+        float absoluteRotation = Mathf.Rad2Deg * Mathf.Atan2(gunPointVector.y, gunPointVector.x);
         float rotateDistance = absoluteRotation - gunObject.transform.localEulerAngles.z;
 
         //Then calculate how much extra we need to rotate to have the actual gun barrel aim at the mouse point
@@ -180,6 +203,13 @@ public class PlayerController : MonoBehaviour
         rotateDistance = rotateDistance + Mathf.Rad2Deg * Mathf.Asin(shoulderGunYOffset / hypotenuseDistance);
 
         gunObject.transform.Rotate(0f, 0f, rotateDistance);
+
+
+        Debug.DrawRay(gameObject.transform.position, Vector2.up, Color.green);
+        Debug.DrawRay(mousePos, Vector2.up, Color.red);
+        Debug.DrawRay(gunExit.transform.position, Vector2.up, Color.magenta);
+
+
     }
 
     void moveProjectedShot()
@@ -200,6 +230,19 @@ public class PlayerController : MonoBehaviour
         aimingAt = rayHit.transform.gameObject;
 
     }
+
+    bool isFacingRight()
+    {
+        return gameObject.transform.localScale.x > 0;
+    }
+
+    void flipPlayerHorizontal()
+    {
+        Vector3 localScaleTemp = gameObject.transform.localScale;
+        localScaleTemp.x *= -1;
+        gameObject.transform.localScale = localScaleTemp;
+    }
+
 
     void handleGunActions()
     {
