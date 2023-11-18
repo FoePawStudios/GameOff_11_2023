@@ -1,1 +1,2 @@
-Rules\BrickRules.tmx
+Rules\TemplateRuleStep1.tmx
+Rules\TemplateRuleStep3.tmx

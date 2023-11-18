@@ -9,8 +9,8 @@ public class HUD : MonoBehaviour
     private GameObject player;
     private GameObject HUDObject;
     private GameObject GunSelectUI;
-    private int lastScreenWidth = 0;
-    private int lastScreenHeight = 0;
+    //private int lastScreenWidth = 0;
+    //private int lastScreenHeight = 0;
 
     // Start is called before the first frame update
     void Start()

@@ -22,7 +22,7 @@ public class PlayerController : MonoBehaviour
     public LayerMask scalableLayer;
     private Vector2 inputVector;
     private Rigidbody2D rigidBody2d;
-    private GameObject shoulderPivot;
+    private GameObject gunObject;
     private GameObject gunExit;
     private GameObject ShootProjection;
     private GameObject aimingAt;
@@ -41,10 +41,10 @@ public class PlayerController : MonoBehaviour
     {
         inputVector = new(0.0f, 0.0f);
         rigidBody2d = gameObject.GetComponent<Rigidbody2D>();
-        shoulderPivot = GameObject.FindGameObjectWithTag("ShoulderPivot");
+        gunObject = GameObject.FindGameObjectWithTag("Gun");
         gunExit = GameObject.FindGameObjectWithTag("gunExit");
         ShootProjection = GameObject.FindGameObjectWithTag("ShootProjection");
-        shoulderGunYOffset = Mathf.Abs( shoulderPivot.transform.position.y - gunExit.transform.position.y );
+        shoulderGunYOffset = Mathf.Abs( gunObject.transform.position.y - gunExit.transform.position.y );
         lastJump = 0;
         isGrounded = false;
         gunMode = GunMode.Max_Scale;
@@ -65,6 +65,13 @@ public class PlayerController : MonoBehaviour
     {
         //handle grabbing objects
         moveGrabbedObject();
+
+        Debug.DrawRay(gameObject.transform.position, Vector2.up, Color.green);
+        Debug.DrawRay(gameObject.transform.position, Vector2.right, Color.red);
+        
+        Debug.DrawRay(gameObject.transform.position, Physics2D.gravity * gameObject.GetComponent<Rigidbody2D>().gravityScale, Color.red);
+
+
     }
 
     public void checkDragging()
@@ -160,19 +167,19 @@ public class PlayerController : MonoBehaviour
         Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
         //First get the amount to rotate the shoulder to look at the mouse point
-        Vector3 gunPointVector = new Vector3(mousePos.x - shoulderPivot.transform.position.x, mousePos.y - shoulderPivot.transform.position.y);
+        Vector3 gunPointVector = new Vector3(mousePos.x - gunObject.transform.position.x, mousePos.y - gunObject.transform.position.y);
         gunPointVector = gunPointVector.normalized;
 
         float absoluteRotation = Mathf.Rad2Deg * Mathf.Atan2(gunPointVector.y, gunPointVector.x);
 
-        float rotateDistance = absoluteRotation - shoulderPivot.transform.localEulerAngles.z;
+        float rotateDistance = absoluteRotation - gunObject.transform.localEulerAngles.z;
 
         //Then calculate how much extra we need to rotate to have the actual gun barrel aim at the mouse point
-        float shoulderToMouseDist = Vector2.Distance(shoulderPivot.transform.position, mousePos);
+        float shoulderToMouseDist = Vector2.Distance(gunObject.transform.position, mousePos);
         float hypotenuseDistance = Mathf.Sqrt(Mathf.Pow(shoulderToMouseDist, 2) + Mathf.Pow(shoulderGunYOffset, 2));
         rotateDistance = rotateDistance + Mathf.Rad2Deg * Mathf.Asin(shoulderGunYOffset / hypotenuseDistance);
 
-        shoulderPivot.transform.Rotate(0f, 0f, rotateDistance);
+        gunObject.transform.Rotate(0f, 0f, rotateDistance);
     }
 
     void moveProjectedShot()
