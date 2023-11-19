@@ -14,10 +14,10 @@ public class CameraManager : MonoBehaviour
     void Start()
     {
         player = GameObject.FindWithTag("Player");
-        Texture2D playerTexture = player.GetComponent<SpriteRenderer>().sprite.texture;
-        TextureImporter playerTextureImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(playerTexture)) as TextureImporter;
-        playerUnitHeight = playerTexture.height / playerTextureImporter.spritePixelsPerUnit;
-        playerUnitHeight = playerTexture.width / playerTextureImporter.spritePixelsPerUnit;
+        //Texture2D playerTexture = player.GetComponent<SpriteRenderer>().sprite.texture;
+        //TextureImporter playerTextureImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(playerTexture)) as TextureImporter;
+        playerUnitHeight = playerTexture.height / 10;//playerTextureImporter.spritePixelsPerUnit;
+        playerUnitHeight = playerTexture.width / 10;//playerTextureImporter.spritePixelsPerUnit;
     }
 
     // Update is called once per frame
