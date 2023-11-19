@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: d40327691a930b749975f14edde990d9
+guid: 97bfa9ca3eabab242a3777a02c4c248a
 ScriptedImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -8,11 +8,11 @@ ScriptedImporter:
   assetBundleName: 
   assetBundleVariant: 
   script: {fileID: 11500000, guid: 1fa25d03934ea624a82bf2fcee6f0873, type: 3}
-  missingFiles: []
-  errors: []
-  warnings:
-  - Pixels Per Unit mismatch between map (100) and tileset '../../LevelTiles/TemplateTileset.tsx'
-    (10)
+  missingFiles:
+  - ../../LevelTiles/TemplateTileset.tsx
+  errors:
+  - 'Missing tileset asset: ../../LevelTiles/TemplateTileset.tsx'
+  warnings: []
   missingSortingLayers: []
   missingLayers: []
   missingTags: []

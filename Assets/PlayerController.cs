@@ -10,16 +10,101 @@ public enum GunMode
     Min_Scale
 }
 
+public enum JumpState
+{
+    Jumping,
+    Hanging,
+    Falling,
+    Grounded
+}
+
+public class JumpStateInfo
+{
+    public float stateStart;
+    private JumpState _state;
+
+    public JumpState state
+    {
+        get { return _state; }
+        set
+        {
+            _state = value;
+            stateStart = Time.time;
+        }
+    }
+
+    public JumpStateInfo(JumpState startState)
+    {
+        _state = startState;
+    }
+
+    public JumpStateInfo()
+    {
+        _state = JumpState.Falling;
+    }
+
+    public void setGrounded()
+    {
+        state = JumpState.Grounded;
+    }
+
+    public void setJumping()
+    {
+        state = JumpState.Jumping;
+    }
+
+    public void setHanging()
+    {
+        state = JumpState.Hanging;
+    }
+
+    public void setFalling()
+    {
+        state = JumpState.Falling;
+    }
+
+    public bool isJumping()
+    {
+        return _state == JumpState.Jumping;
+    }
+
+    public bool isHanging()
+    {
+        return _state == JumpState.Hanging;
+    }
+
+    public bool isGrounded()
+    {
+        return _state == JumpState.Grounded;
+    }
+
+    public bool isFalling()
+    {
+        return _state == JumpState.Falling;
+    }
+}
+
+
 public class PlayerController : MonoBehaviour
 {
+    public AnimationCurve jumpCurve = new AnimationCurve();
     public float horizontalSpeed = 5;
-    public float jumpSpeed = 8;
-    public float jumpCooldown = 1;
     public float scaleRate = 30;
     private float mouseHoldTime = .2f;
     public float dragRange = 2f;
     public float dragStrength = 5f;
     public LayerMask scalableLayer;
+
+
+    //Jump Variables
+    public float jumpSpeed = 8;
+    public float jumpHeightLimit = 3;
+
+    private float jumpMaxTime = 0;
+    public float jumpFloatTime = 1;
+    public float fallSpeed = 8;
+    private JumpStateInfo jumpState = new JumpStateInfo();
+    
     private Vector2 inputVector;
     private Rigidbody2D rigidBody2d;
     private GameObject gunObject;
@@ -27,8 +112,9 @@ public class PlayerController : MonoBehaviour
     private GameObject ShootProjection;
     private GameObject aimingAt;
     public bool isGrounded { get; set; }
+    public bool isHeadColliding { get; set; }
     private float shoulderGunYOffset;
-    private float lastJump;
+    
     private float oldGravityScale;
     public GunMode gunMode;
 
@@ -45,8 +131,8 @@ public class PlayerController : MonoBehaviour
         gunExit = GameObject.FindGameObjectWithTag("gunExit");
         ShootProjection = GameObject.FindGameObjectWithTag("ShootProjection");
         shoulderGunYOffset = Mathf.Abs( gunObject.transform.position.y - gunExit.transform.position.y );
-        lastJump = 0;
         isGrounded = false;
+        isHeadColliding = false;
         gunMode = GunMode.Max_Scale;
 
     }
@@ -59,11 +145,13 @@ public class PlayerController : MonoBehaviour
         handleGunActions();
         moveProjectedShot();
         checkDragging();
+        jumpMaxTime = jumpHeightLimit / jumpSpeed;
     }
 
     private void FixedUpdate()
     {
         //handle grabbing objects
+        handleJump();
         moveGrabbedObject();
     }
 
@@ -141,20 +229,89 @@ public class PlayerController : MonoBehaviour
             gameObject.transform.Translate(inputVector * Time.deltaTime);
         }
 
-        //Handle Jump Input
-        if( isGrounded )
+        if ( Input.GetAxisRaw("Vertical") > 0.1 || Input.GetKeyDown(KeyCode.Space) )
         {
-            if (Input.GetAxisRaw("Vertical") > 0.1 || Input.GetKeyDown(KeyCode.Space)) // || Mathf.Abs(Input.GetAxisRaw("Vertical")) > 0)
+            if(jumpState.isGrounded())
             {
-                //If we are off jump cooldown
-                if (Time.time - lastJump > jumpCooldown)
-                { 
-                    lastJump = Time.time;
-                    rigidBody2d.velocity = Vector2.up * jumpSpeed;
-                }
+                jumpState.setJumping();
             }
         }
-        
+
+    }
+
+    void handleJump()
+    {
+        Debug.Log(jumpState.state);
+        //if we are grounded, and we didn't just start a jump, set the state to grounded
+        if (isGrounded && !jumpState.isGrounded())
+        {
+            if(!jumpState.isJumping() || Time.time - jumpState.stateStart >= .5 ) 
+            {
+                jumpState.setGrounded();
+            }
+        }
+
+        if(jumpState.isGrounded() && !isGrounded)
+        {
+            jumpState.setFalling();
+        }
+
+        //If we are jumping, check if we should keep upward velocity or transition into hanging or falling
+        if (jumpState.isJumping())
+        {
+            //if we are no longer holding the jump button, transition to falling state
+            if(Input.GetAxisRaw("Vertical") < 0.1 && !Input.GetKey(KeyCode.Space) )
+            {
+                jumpState.setFalling();
+            }
+            //first check if we hit our head, and if so move to the falling state
+            else if( isHeadColliding )
+            {
+                jumpState.setFalling();
+            }
+            //next check if we exceeded jump time limit and if so transition to the hang time state
+            else if (Time.time - jumpState.stateStart > jumpMaxTime)
+            {
+                jumpState.setHanging();
+;           }
+            //otherwise we can keep out velocity moving upwards 
+            else
+            {
+                Vector2 rbVel = rigidBody2d.velocity;
+                rbVel.y = jumpSpeed;
+                rigidBody2d.velocity = rbVel;
+            }
+        }
+
+        if (jumpState.isHanging())
+        {
+            //if we are no longer holding the jump button, transition to falling state
+            if (Input.GetAxisRaw("Vertical") < 0.1 && !Input.GetKey(KeyCode.Space))
+            {
+                jumpState.setFalling();
+            }
+            //if we have hung for long enough, start falling
+            else if (Time.time - jumpState.stateStart > jumpFloatTime)
+            {
+                jumpState.setFalling();
+            }
+        }
+
+        if( jumpState.isFalling() ) 
+        {
+            //if we are grounded, update the state and we are all good
+            if (isGrounded)
+            {
+                jumpState.setGrounded();
+            }
+            //otherwise set vertical velocity
+            else
+            {
+                Vector2 rbVel = rigidBody2d.velocity;
+                rbVel.y = -jumpSpeed;
+                rigidBody2d.velocity = rbVel;
+            }
+        }
     }
 
     void pointGunAtMouse()
@@ -332,15 +489,4 @@ public class PlayerController : MonoBehaviour
 
         gunMode = (GunMode)gunModeInt;
     }
-
-    void OnTriggerEnter2D(Collider2D collider)
-    {
-        isGrounded = true;
-    }
-
-    void OnTriggerExit2D(Collider2D collider)
-    {
-        isGrounded = false;
-    }
-
 }

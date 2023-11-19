@@ -1,2 +1,3 @@
-Rules\TemplateRuleStep1.tmx
-Rules\TemplateRuleStep3.tmx
+Rules\PrototypeReplace1.tmx
+Rules\PrototypeReplace2.tmx
+Rules\AddDetails.tmx

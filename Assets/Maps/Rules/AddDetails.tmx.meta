@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 3dc8f624ec4712b41afddcd0049dbe59
+guid: e549856bf8df7b04b87dec1cabc1d0c0
 ScriptedImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -9,9 +9,9 @@ ScriptedImporter:
   assetBundleVariant: 
   script: {fileID: 11500000, guid: 1fa25d03934ea624a82bf2fcee6f0873, type: 3}
   missingFiles:
-  - ../../LevelTiles/BrickTileset.tsx
+  - ../../LevelTiles/TemplateTileset.tsx
   errors:
-  - 'Missing tileset asset: ../../LevelTiles/BrickTileset.tsx'
+  - 'Missing tileset asset: ../../LevelTiles/TemplateTileset.tsx'
   warnings: []
   missingSortingLayers: []
   missingLayers: []
