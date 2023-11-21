@@ -18,11 +18,11 @@ public class hitHead : MonoBehaviour
     }
     void OnTriggerEnter2D(Collider2D collider)
     {
-        playerScript.isHeadColliding = true;
+        //playerScript.isHeadColliding = true;
     }
 
     void OnTriggerExit2D(Collider2D collider)
     {
-        playerScript.isHeadColliding = false;
+        //playerScript.isHeadColliding = false;
     }
 }

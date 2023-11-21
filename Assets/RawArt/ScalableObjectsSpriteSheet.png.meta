@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: b36b09e2f0d248146a6a64371bf19510
+guid: 7cfbb2cd75f8aa44a9ba0afbf5ef126c
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -43,17 +43,17 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
-  spriteExtrude: 0
+  spriteMode: 1
+  spriteExtrude: 1
   spriteMeshType: 1
-  alignment: 9
-  spritePivot: {x: 0.1875, y: 0.515625}
-  spritePixelsToUnits: 10
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 0
   alphaUsage: 1
   alphaIsTransparency: 1
-  spriteTessellationDetail: 1
+  spriteTessellationDetail: -1
   textureType: 8
   textureShape: 1
   singleChannelComponent: 0
@@ -134,130 +134,18 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
-    sprites:
-    - serializedVersion: 2
-      name: MainCharacterArms_0
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 0
-        width: 40
-        height: 32
-      alignment: 9
-      pivot: {x: 0.1875, y: 0.546875}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: bd922948e887c52488206744792c317a
-      internalID: 910315718
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: MainCharacterArms_1
-      rect:
-        serializedVersion: 2
-        x: 40
-        y: 0
-        width: 40
-        height: 32
-      alignment: 9
-      pivot: {x: 0.1875, y: 0.546875}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: dcd323c47b3a82d4083d945f6abacb82
-      internalID: 230302248
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: MainCharacterArms_2
-      rect:
-        serializedVersion: 2
-        x: 80
-        y: 0
-        width: 40
-        height: 32
-      alignment: 9
-      pivot: {x: 0.1875, y: 0.546875}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 7ddbaeae288ae5a4f927afa71361c88c
-      internalID: -1800563597
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: MainCharacterArms_3
-      rect:
-        serializedVersion: 2
-        x: 120
-        y: 0
-        width: 40
-        height: 32
-      alignment: 9
-      pivot: {x: 0.1875, y: 0.546875}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 285d8a18d654f6943a6ab687a5c5fabf
-      internalID: 262976722
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
+    sprites: []
     outline: []
-    physicsShape:
-    - - {x: 18, y: -5}
-      - {x: 18, y: 0}
-      - {x: 15, y: 0}
-      - {x: 13, y: 5}
-      - {x: 9, y: 5}
-      - {x: 4, y: 0}
-      - {x: 2, y: 1}
-      - {x: -6, y: 1}
-      - {x: -10, y: 1}
-      - {x: -12, y: 2}
-      - {x: -13, y: 2}
-      - {x: -16, y: -1}
-      - {x: -17, y: -3}
-      - {x: -17, y: -4}
-      - {x: -15, y: -6}
-      - {x: -10, y: -7}
-      - {x: -9, y: -8}
-      - {x: -6, y: -8}
-      - {x: -6, y: -7}
-      - {x: 2, y: -7}
-      - {x: 4, y: -5}
-      - {x: 10, y: -10}
-      - {x: 13, y: -10}
-      - {x: 15, y: -5}
+    physicsShape: []
     bones: []
     spriteID: 5e97eb03825dee720800000000000000
-    internalID: 1537655665
+    internalID: 0
     vertices: []
     indices: 
     edges: []
     weights: []
     secondaryTextures: []
-    nameFileIdTable:
-      MainCharacterArms_0: 910315718
-      MainCharacterArms_1: 230302248
-      MainCharacterArms_2: -1800563597
-      MainCharacterArms_3: 262976722
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

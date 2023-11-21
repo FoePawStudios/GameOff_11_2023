@@ -5,15 +5,14 @@ TagManager:
   serializedVersion: 2
   tags:
   - ScalableObject
-  - ShoulderPivot
   - Gun
   - ShootProjection
   - gunExit
-  - Floor
-  - feet
-  - Ground
   - HUD
   - Head
+  - Feet
+  - FrontSide
+  - BackSide
   layers:
   - Default
   - TransparentFX
@@ -22,7 +21,7 @@ TagManager:
   - Water
   - UI
   - Scalable
-  - 
+  - Player
   - 
   - 
   - 

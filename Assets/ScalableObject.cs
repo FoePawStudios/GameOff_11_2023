@@ -8,6 +8,8 @@ public class ScalableObject : MonoBehaviour
 {
     private float lerpSpeed;// = 2.0f;
     public float maxScale = 10f;
+    public bool fixedUntilInteractedWith = false;
+    private bool isStillFixed = true;
 
     private Vector2 originalScale;
     private Vector2 minScale;
@@ -16,9 +18,10 @@ public class ScalableObject : MonoBehaviour
 
     private Texture spriteTexture;
     private GameObject playerObject;
+    private Rigidbody2D rigidBody;
     
     private float throwablePercentOfPlayer = .35f; //capsule height 512, circle 256
-    public bool isFixedObject;
+    private bool _isFixedObject;
 
     // Start is called before the first frame update
     void Start()
@@ -34,9 +37,18 @@ public class ScalableObject : MonoBehaviour
 
         spriteTexture = gameObject.GetComponent<SpriteRenderer>().sprite.texture;
         playerObject = GameObject.FindGameObjectWithTag("Player");
+        rigidBody = gameObject.GetComponent<Rigidbody2D>();
+
         calcThrowableScale();
         calcFixedPhysics();
         lerpSpeed = 20f;
+
+        if(fixedUntilInteractedWith)
+        {
+            setRBConstraints(true, true, true);
+        }
+
+
     }
 
     // Update is called once per frame
@@ -55,22 +67,24 @@ public class ScalableObject : MonoBehaviour
 
     public void scaleToMax()
     {
-        //scaleStartTime = Time.time;
+        unfreezeObject();
         targetScale = .9f * getMaxScale();
     }
     public void scaleToMin()
     {
-        //scaleStartTime = Time.time;
+        unfreezeObject();
         targetScale = minScale;
     }
     public void scaleToStart()
     {
-        //scaleStartTime = Time.time;
+        unfreezeObject();
         targetScale = originalScale;
     }
 
     public void changeScale(float changeAmount)
     {
+        unfreezeObject();
+
         targetScale = gameObject.transform.localScale * (1 + changeAmount);
 
         //make sure we don't go smaller than minScale
@@ -105,23 +119,28 @@ public class ScalableObject : MonoBehaviour
 
     private void calcFixedPhysics()
     {
-        Rigidbody2D rb = gameObject.GetComponent<Rigidbody2D>();
-        if(!rb)
+        if(!rigidBody)
         {
-            isFixedObject = true;
+            _isFixedObject = true;
             return;
         }
 
-        bool isXPositionFrozen = (rb.constraints & RigidbodyConstraints2D.FreezePositionX) != 0;
-        bool isYPositionFrozen = (rb.constraints & RigidbodyConstraints2D.FreezePositionY) != 0;
+        if(fixedUntilInteractedWith)
+        {
+            _isFixedObject = false;
+            return;
+        }
+
+        bool isXPositionFrozen = (rigidBody.constraints & RigidbodyConstraints2D.FreezePositionX) != 0;
+        bool isYPositionFrozen = (rigidBody.constraints & RigidbodyConstraints2D.FreezePositionY) != 0;
 
         if( isXPositionFrozen || isYPositionFrozen)
         {
-            isFixedObject = true;
+            _isFixedObject = true;
             return;
         }
 
-        isFixedObject = false;
+        _isFixedObject = false;
     }
 
     public Vector3 getMaxScale()
@@ -155,7 +174,7 @@ public class ScalableObject : MonoBehaviour
         float directionRatio = getScaleMaxInDirection(direction, out directionMaxDist, out directionCurrentDist);
 
         //If this isn't a fixed object and the first ray didn't hit anything we can return early
-        if(!isFixedObject && directionRatio == Mathf.Infinity)
+        if(!_isFixedObject && directionRatio == Mathf.Infinity)
         {
             return directionMaxDist;
         }
@@ -165,7 +184,7 @@ public class ScalableObject : MonoBehaviour
         float oppositeRatio = getScaleMaxInDirection(-direction, out oppositeMaxDist, out oppositeCurrentDist);
 
         //If this is a fixed object return the smaller of the two directions it can scale on the axis
-        if(isFixedObject)
+        if(_isFixedObject)
         {
             return Mathf.Min(directionRatio, oppositeRatio);
         }
@@ -274,7 +293,31 @@ public class ScalableObject : MonoBehaviour
         }
 
         return rayHit;
+    }
 
+    public bool isFixedObject()
+    {
+        return _isFixedObject;
+    }
+
+    public void unfreezeObject()
+    {
+        if(fixedUntilInteractedWith && isStillFixed)
+        {
+            isStillFixed = false;
+            setRBConstraints(false, false, false);
+        }
+    }
+
+    private void setRBConstraints(bool freezeX, bool freezeY, bool freezeRotation )
+    {
+        RigidbodyConstraints2D rbc2d = new RigidbodyConstraints2D();
+
+        if (freezeX) rbc2d = rbc2d | RigidbodyConstraints2D.FreezePositionX;
+        if (freezeY) rbc2d = rbc2d | RigidbodyConstraints2D.FreezePositionY;
+        if (freezeRotation) rbc2d = rbc2d | RigidbodyConstraints2D.FreezeRotation;
+
+        rigidBody.constraints = rbc2d;
     }
 
 }

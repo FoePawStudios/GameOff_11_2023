@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public enum GunMode
@@ -54,7 +56,7 @@ public class JumpStateInfo
     }
 
     public void setHanging()
-    {
+    {   
         state = JumpState.Hanging;
     }
 
@@ -84,23 +86,21 @@ public class JumpStateInfo
     }
 }
 
-
 public class PlayerController : MonoBehaviour
 {
-    public AnimationCurve jumpCurve = new AnimationCurve();
+    //public AnimationCurve jumpCurve = new AnimationCurve();
     public float horizontalSpeed = 5;
     public float scaleRate = 30;
-    private float mouseHoldTime = .2f;
     public float dragRange = 2f;
     public float dragStrength = 5f;
     public LayerMask scalableLayer;
-
+    private float mouseHoldTime = .1f;
 
     //Jump Variables
     public float jumpSpeed = 8;
-    public float jumpHeightLimit = 3;
+    public float maxJumpHeight = 3;
+    public float minJumpHeight = 2;
 
-    private float jumpMaxTime = 0;
     public float jumpFloatTime = 1;
     public float fallSpeed = 8;
     private JumpStateInfo jumpState = new JumpStateInfo();
@@ -111,16 +111,30 @@ public class PlayerController : MonoBehaviour
     private GameObject gunExit;
     private GameObject ShootProjection;
     private GameObject aimingAt;
-    public bool isGrounded { get; set; }
-    public bool isHeadColliding { get; set; }
+
+    private collisionTracker bodyCollisionTracker;
+    private collisionTracker headCollisionTracker;
+    private collisionTracker feetCollisionTracker;
+    private collisionTracker frontCollisionTracker;
+    private collisionTracker backCollisionTracker;
+
+    Dictionary<Collider2D, bool> groundCollisions = new Dictionary<Collider2D, bool>();
+    Dictionary<Collider2D, bool> headCollisions = new Dictionary<Collider2D, bool>();
+
+    //private List<GameObject> groundCollisions = new List<GameObject>();
+    //private List<GameObject> headCollisions = new List<GameObject>();
+
     private float shoulderGunYOffset;
     
     private float oldGravityScale;
     public GunMode gunMode;
 
+    private bool usingGun = false;
     private bool isDragging;
     private float lastClickDown;
     private GameObject draggedObject;
+
+    private Vector2 checkPoint;
     
     // Start is called before the first frame update
     void Start()
@@ -131,21 +145,29 @@ public class PlayerController : MonoBehaviour
         gunExit = GameObject.FindGameObjectWithTag("gunExit");
         ShootProjection = GameObject.FindGameObjectWithTag("ShootProjection");
         shoulderGunYOffset = Mathf.Abs( gunObject.transform.position.y - gunExit.transform.position.y );
-        isGrounded = false;
-        isHeadColliding = false;
         gunMode = GunMode.Max_Scale;
+        checkPoint = gameObject.transform.position;
 
+        headCollisionTracker = GameObject.FindGameObjectWithTag("Head").GetComponent<collisionTracker>();
+        feetCollisionTracker = GameObject.FindGameObjectWithTag("Feet").GetComponent<collisionTracker>();
+        bodyCollisionTracker = gameObject.GetComponent<collisionTracker>();
+        frontCollisionTracker = GameObject.FindGameObjectWithTag("FrontSide").GetComponent<collisionTracker>();
+        backCollisionTracker = GameObject.FindGameObjectWithTag("BackSide").GetComponent<collisionTracker>();
     }
 
     // Update is called once per frame
     void Update()
     {
+        //By default set usingGun to false and update as we evaluate
+        usingGun=false;
+
         handleMovement();
         pointGunAtMouse();
         handleGunActions();
         moveProjectedShot();
         checkDragging();
-        jumpMaxTime = jumpHeightLimit / jumpSpeed;
+        handleGunAnim();
+
     }
 
     private void FixedUpdate()
@@ -156,30 +178,49 @@ public class PlayerController : MonoBehaviour
     }
 
     
+    void handleGunAnim()
+    {
+        if(isDragging)
+        {
+            usingGun = true;
+        }
+        gunObject.GetComponent<Animator>().SetBool("isUsing", usingGun);
+    }
 
 
     public void checkDragging()
     {
-        if( Input.GetMouseButtonDown(0) ) 
+        /*if( Input.GetMouseButtonDown(0) ) 
         {
             lastClickDown = Time.time;
             draggedObject = aimingAt;
-        }
+        }*/
 
         //if we are holding down the mouse long enough and aren't already dragging the item, try to start grabbing it
-        if( Input.GetMouseButton(0) && Time.time - lastClickDown > mouseHoldTime && !isDragging)
+        //if( Input.GetMouseButton(0) && Time.time - lastClickDown > mouseHoldTime && !isDragging)
+        if ( Input.GetKeyUp( KeyCode.E ) )
         {
-            if(!draggedObject)
+            if(isDragging)
+            {
+                stopDragging();
+            }
+            else 
+            {
+                isDragging = tryGrabObject(aimingAt);
+            }
+
+
+            /*if(!draggedObject)
             {
                 draggedObject = aimingAt;
-            }
-            isDragging = tryGrabObject(draggedObject); 
+            }*/
+            
         }
 
-        if (Input.GetMouseButtonUp(0) && isDragging)
+        /*if (Input.GetMouseButtonUp(0) && isDragging)
         {
             stopDragging();
-        }
+        }*/
     }
 
     bool tryGrabObject(GameObject scalableObject)
@@ -187,20 +228,23 @@ public class PlayerController : MonoBehaviour
         //there must be an object to grab
         if (!scalableObject) return false;
 
+        ScalableObject scalableScript = scalableObject.GetComponent<ScalableObject>();
+
         //it has to have the scalable script attached to it
-        if (!scalableObject.GetComponent<ScalableObject>()) return false;
+        if (!scalableScript) return false;
 
         //it can't be a fixed object (either doesn't have a rigidbody or has transform constraints
-        if (scalableObject.GetComponent<ScalableObject>().isFixedObject) return false;
+        if (scalableScript.isFixedObject()) return false;
 
         Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         float mouseDistance = Vector2.Distance(gunExit.transform.position, mousePos);
 
         //it has to be within grab distance
-        if (mouseDistance > dragRange) return false;
+        if (mouseDistance > (dragRange*1.75)) return false;
 
 
         //We succeeded in grabbing the object
+        scalableScript.unfreezeObject();
         draggedObject = scalableObject;
         oldGravityScale = draggedObject.GetComponent<Rigidbody2D>().gravityScale;
         draggedObject.GetComponent<Rigidbody2D>().gravityScale = 0;
@@ -222,8 +266,13 @@ public class PlayerController : MonoBehaviour
 
     void handleMovement()
     {
-        //Handle Horizontal Input
-        if (Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0.1) // || Mathf.Abs(Input.GetAxisRaw("Vertical")) > 0)
+        if (Input.GetAxisRaw("Horizontal") > 0.1 && !isFrontBlocked())
+        {
+            inputVector.Set(Input.GetAxisRaw("Horizontal") * horizontalSpeed, 0f);
+            gameObject.transform.Translate(inputVector * Time.deltaTime);
+        }
+
+        if (Input.GetAxisRaw("Horizontal") < -0.1 && !isBackBlocked())
         {
             inputVector.Set(Input.GetAxisRaw("Horizontal") * horizontalSpeed, 0f);
             gameObject.transform.Translate(inputVector * Time.deltaTime);
@@ -231,7 +280,7 @@ public class PlayerController : MonoBehaviour
 
         if ( Input.GetAxisRaw("Vertical") > 0.1 || Input.GetKeyDown(KeyCode.Space) )
         {
-            if(jumpState.isGrounded())
+             if (jumpState.isGrounded())
             {
                 jumpState.setJumping();
             }
@@ -241,9 +290,8 @@ public class PlayerController : MonoBehaviour
 
     void handleJump()
     {
-        Debug.Log(jumpState.state);
         //if we are grounded, and we didn't just start a jump, set the state to grounded
-        if (isGrounded && !jumpState.isGrounded())
+        if (isGrounded() && !jumpState.isGrounded())
         {
             if(!jumpState.isJumping() || Time.time - jumpState.stateStart >= .5 ) 
             {
@@ -251,7 +299,7 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        if(jumpState.isGrounded() && !isGrounded)
+        if(jumpState.isGrounded() && !isGrounded())
         {
             jumpState.setFalling();
         }
@@ -259,27 +307,30 @@ public class PlayerController : MonoBehaviour
         //If we are jumping, check if we should keep upward velocity or transition into hanging or falling
         if (jumpState.isJumping())
         {
-            //if we are no longer holding the jump button, transition to falling state
-            if(Input.GetAxisRaw("Vertical") < 0.1 && !Input.GetKey(KeyCode.Space) )
+            //if we are no longer holding the jump button, AND we are past the minimum jump time, transition to falling state
+            if(Input.GetAxisRaw("Vertical") < 0.1 && !Input.GetKey(KeyCode.Space) && Time.time - jumpState.stateStart > (minJumpHeight / jumpSpeed))
             {
                 jumpState.setFalling();
             }
             //first check if we hit our head, and if so move to the falling state
-            else if( isHeadColliding )
+            else if( isHeadColliding() )
             {
                 jumpState.setFalling();
             }
             //next check if we exceeded jump time limit and if so transition to the hang time state
-            else if (Time.time - jumpState.stateStart > jumpMaxTime)
+            else if (Time.time - jumpState.stateStart > (maxJumpHeight / jumpSpeed))
             {
+                //When we transition to hanging, reduce the vertical velocity by a fraction
+                /*Vector2 rbVel = rigidBody2d.velocity;
+                rbVel.y =  rbVel.y*.5f;
+                rigidBody2d.velocity = rbVel;*/
+
                 jumpState.setHanging();
 ;           }
             //otherwise we can keep out velocity moving upwards 
             else
             {
-                Vector2 rbVel = rigidBody2d.velocity;
-                rbVel.y = jumpSpeed;
-                rigidBody2d.velocity = rbVel;
+                setYVelocity(jumpSpeed);
             }
         }
 
@@ -295,23 +346,44 @@ public class PlayerController : MonoBehaviour
             {
                 jumpState.setFalling();
             }
+            //handle floating velocity
+            else if(jumpFloatTime > 0)
+            {
+                //set the y velocity as a LERP val between jump and fall speeds
+                float lerpPercent = (Time.time - jumpState.stateStart) / jumpFloatTime;
+                float yVel = Mathf.Lerp(jumpSpeed, -fallSpeed, lerpPercent);
+
+                setYVelocity(yVel);
+            }
         }
 
         if( jumpState.isFalling() ) 
         {
             //if we are grounded, update the state and we are all good
-            if (isGrounded)
+            if (isGrounded())
             {
                 jumpState.setGrounded();
             }
             //otherwise set vertical velocity
             else
             {
-                Vector2 rbVel = rigidBody2d.velocity;
-                rbVel.y = -jumpSpeed;
-                rigidBody2d.velocity = rbVel;
+                setYVelocity(-fallSpeed);
             }
         }
+    }
+
+    void setYVelocity(float yVel)
+    {
+        Vector2 rbVel = rigidBody2d.velocity;
+        rbVel.y = yVel;
+        rigidBody2d.velocity = rbVel;
+    }
+
+    void setXVelocity(float xVel)
+    {
+        Vector2 rbVel = rigidBody2d.velocity;
+        rbVel.x = xVel;
+        rigidBody2d.velocity = rbVel;
     }
 
     void pointGunAtMouse()
@@ -363,7 +435,11 @@ public class PlayerController : MonoBehaviour
     void moveProjectedShot()
     {
         //Shoot ray from gun exit to find anything on the scalable layer that it would collide with
-        RaycastHit2D rayHit = Physics2D.Raycast(gunExit.transform.position, gunExit.transform.up, Mathf.Infinity, scalableLayer.value );
+        Vector2 shootDir = gunExit.transform.right;
+        if ( !isFacingRight() ) shootDir *= -1;
+
+
+        RaycastHit2D rayHit = Physics2D.Raycast(gunExit.transform.position, shootDir, Mathf.Infinity, scalableLayer.value );
 
         if (rayHit.transform == null)
         {
@@ -399,24 +475,28 @@ public class PlayerController : MonoBehaviour
         if( Input.mouseScrollDelta.y != 0)
         {
             aimingAt.GetComponent<ScalableObject>().changeScale(Input.mouseScrollDelta.y * Time.fixedDeltaTime * scaleRate);
+            usingGun = true;
         }
 
         //left click
         if (Input.GetMouseButtonDown(0))
         {
             aimingAt.GetComponent<ScalableObject>().scaleToMin();
+            usingGun = true;
         }
 
         //right click
         if ( Input.GetMouseButtonDown(1) )
         {
             aimingAt.GetComponent<ScalableObject>().scaleToMax();
+            usingGun = true;
         }
 
         //middle mouse click
         if (Input.GetMouseButtonDown(2))
         {
             aimingAt.GetComponent<ScalableObject>().scaleToStart();
+            usingGun = true;
         }
 
     }
@@ -431,10 +511,13 @@ public class PlayerController : MonoBehaviour
             Vector2 targetDrag = new Vector2(mousePos.x, mousePos.y);
             Vector2 mouseDirection = (mousePos - (Vector2)gunExit.transform.position).normalized;
 
+            //get object dimensions and add half of the larger to dimension to the drag range
+            float largerDimensionSize = Mathf.Max( draggedObject.GetComponent<Renderer>().bounds.size.x, draggedObject.GetComponent<Renderer>().bounds.size.y)/2;
+
             //If the mouse is too far away, just have the object move to max range
             if ( mouseDistance > dragRange) 
             {
-                targetDrag = (Vector2)gunExit.transform.position + mouseDirection * dragRange;
+                targetDrag = (Vector2)gunExit.transform.position + mouseDirection * (dragRange + largerDimensionSize);
             }
 
             Rigidbody2D draggedRB = draggedObject.GetComponent<Rigidbody2D>();
@@ -459,34 +542,47 @@ public class PlayerController : MonoBehaviour
             }
 
             draggedRB.velocity = currentVel;
-
         }
     }
 
-    void nextGunMode()
+    public void activateCheckpoint()
     {
-        int gunModeInt = (int)gunMode;
-        gunModeInt++;
-
-        if (gunModeInt > Enum.GetValues(typeof(GunMode)).Length-1 ) 
-        {
-            gunModeInt = 0;
-        }
-
-        gunMode = (GunMode)gunModeInt;
-
+        checkPoint = gameObject.transform.position;
     }
 
-    void previousGunMode()
+    public void activateDeathpoint()
     {
-        int gunModeInt = (int)gunMode;
-        gunModeInt--;
+        gameObject.transform.position = checkPoint;
+    }
 
-        if (gunModeInt < 0)
+    public bool isActivelyColliding(collisionTracker colTracker)
+    {
+        foreach (Collider2D collider in colTracker.activelyCollidingList)
         {
-            gunModeInt = Enum.GetValues(typeof(GunMode)).Length - 1;
+            if (bodyCollisionTracker.isCollidingWith(collider)) return true;
         }
+        return false;
+    }
 
-        gunMode = (GunMode)gunModeInt;
+
+    public bool isFrontBlocked()
+    {
+        if(isFacingRight()) return isActivelyColliding(frontCollisionTracker);
+        else return isActivelyColliding(backCollisionTracker);
+    }
+
+    public bool isBackBlocked()
+    {
+        if (isFacingRight()) return isActivelyColliding(backCollisionTracker);
+        else return isActivelyColliding(frontCollisionTracker);
+    }
+
+    public bool isGrounded()
+    {
+        return isActivelyColliding(feetCollisionTracker);
+    }
+    public bool isHeadColliding()
+    {
+        return isActivelyColliding(headCollisionTracker);
     }
 }
