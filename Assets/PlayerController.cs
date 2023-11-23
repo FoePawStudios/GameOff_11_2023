@@ -190,37 +190,26 @@ public class PlayerController : MonoBehaviour
 
     public void checkDragging()
     {
-        /*if( Input.GetMouseButtonDown(0) ) 
+        if (Input.GetMouseButtonDown(0))
         {
             lastClickDown = Time.time;
             draggedObject = aimingAt;
-        }*/
-
-        //if we are holding down the mouse long enough and aren't already dragging the item, try to start grabbing it
-        //if( Input.GetMouseButton(0) && Time.time - lastClickDown > mouseHoldTime && !isDragging)
-        if ( Input.GetKeyUp( KeyCode.E ) )
-        {
-            if(isDragging)
-            {
-                stopDragging();
-            }
-            else 
-            {
-                isDragging = tryGrabObject(aimingAt);
-            }
-
-
-            /*if(!draggedObject)
-            {
-                draggedObject = aimingAt;
-            }*/
-            
         }
 
-        /*if (Input.GetMouseButtonUp(0) && isDragging)
+        //if we are holding down the mouse long enough and aren't already dragging the item, try to start grabbing it
+        if (Input.GetMouseButton(0) && Time.time - lastClickDown > mouseHoldTime && !isDragging)
+        {
+            if (!draggedObject)
+            {
+                draggedObject = aimingAt;
+            }
+            isDragging = tryGrabObject(draggedObject);
+        }
+
+        if (Input.GetMouseButtonUp(0) && isDragging)
         {
             stopDragging();
-        }*/
+        }
     }
 
     bool tryGrabObject(GameObject scalableObject)
@@ -478,15 +467,15 @@ public class PlayerController : MonoBehaviour
             usingGun = true;
         }
 
-        //left click
-        if (Input.GetMouseButtonDown(0))
+        //Pressed Q
+        if (Input.GetKeyUp( KeyCode.Q ))
         {
             aimingAt.GetComponent<ScalableObject>().scaleToMin();
             usingGun = true;
         }
 
-        //right click
-        if ( Input.GetMouseButtonDown(1) )
+        //Pressed E
+        if (Input.GetKeyUp(KeyCode.E))
         {
             aimingAt.GetComponent<ScalableObject>().scaleToMax();
             usingGun = true;
