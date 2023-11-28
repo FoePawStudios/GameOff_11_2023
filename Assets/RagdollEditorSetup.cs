@@ -5,7 +5,7 @@ using Unity.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.U2D.Animation;
-
+using UnityEngine.U2D.IK;
 
 [ExecuteAlways]
 public class RagdollEditorSetup : MonoBehaviour
@@ -16,26 +16,115 @@ public class RagdollEditorSetup : MonoBehaviour
     public Dictionary<GameObject, Vector3>  originalPosition = new Dictionary<GameObject, Vector3>();
     public Dictionary<GameObject, Vector3> originalRotation = new Dictionary<GameObject, Vector3>();
 
-    public GameObject rootBone;
-    public GameObject rootSkin;
+    
+    private GameObject rootSkin;
 
-    // Start is called before the first frame update
-    void Start()
+    private Rigidbody2D animationRigidBody;
+    private CapsuleCollider2D animationCollider;
+
+    private IKManager2D ikManager;
+
+    public GameObject rootBone;
+    public GameObject neckBone;
+    public GameObject shoulderBoneLeft;
+    public GameObject shoulderBoneRight;
+    public GameObject elbowBoneLeft;
+    public GameObject elbowBoneRight;
+    public GameObject wristBoneLeft;
+    public GameObject wristBoneRight;
+    public GameObject hipBoneLeft;
+    public GameObject hipBoneRight;
+    public GameObject kneeBoneLeft;
+    public GameObject kneeBoneRight;
+    public GameObject ankleBoneLeft;
+    public GameObject ankleBoneRight;
+
+
+// Start is called before the first frame update
+void Start()
     {
         //if (!Application.IsPlaying(gameObject))
         
         // Editor logic
         setupRagdollObjects();
         if (!gameObject.GetComponent<RagdollUpdate>()) gameObject.AddComponent<RagdollUpdate>();
+        setupAnimationControls();
     }
 
-    
+    private void setupAnimationControls()
+    {
+        //add overall capsule collider and rigidbody for animation physics and collisions
+        animationRigidBody = gameObject.GetComponent<Rigidbody2D>();
+        if (!animationRigidBody) animationRigidBody = gameObject.AddComponent<Rigidbody2D>();
+
+        animationRigidBody.freezeRotation = true;
+
+        animationCollider = gameObject.GetComponent<CapsuleCollider2D>();
+        if (!animationCollider) animationCollider = gameObject.AddComponent<CapsuleCollider2D>();
+
+        float yMin = Mathf.Infinity;
+        float yMax = -Mathf.Infinity;
+        float width = 0;
+
+        //find the y bounding box max and min for all the polygon colliders
+        foreach (GameObject skin in skinToBone.Keys)
+        {
+            Collider2D skinCollider = skin.GetComponent<Collider2D>();
+            if (skinCollider.bounds.max.y > yMax) yMax = skinCollider.bounds.max.y;
+            if (skinCollider.bounds.min.y < yMin) yMin = skinCollider.bounds.min.y;
+
+            if (skin == rootSkin)
+            {
+                width = skinCollider.bounds.max.x - skinCollider.bounds.min.x;
+            }
+
+        }
+
+        float height = yMax - yMin;
+
+        //use root/body sprite collider to place the center of the capsule collider and the width
+        Vector2 capOffset = new Vector2(0f, height / 2);
+        Vector2 capSize = new Vector2(width, height);
+
+        animationCollider.offset = capOffset;
+        animationCollider.size = capSize;
+
+        //ikManager = gameObject.GetComponent<IKManager2D>();
+        //if (!ikManager) ikManager = gameObject.AddComponent<IKManager2D>();
+
+        //add IKs if they haven't already been set up
+        /*if(ikManager.solvers.Count == 0) 
+        {
+
+            LimbSolver2D rightArm = new LimbSolver2D();
+            rightArm.GetChain(0)
+
+            IKChain2D rightArm = new IKChain2D();
+            rightArm.effector = wristBoneRight.transform;
+            rightArm.target = shoulderBoneRight.transform;
+
+            //right arm
+            Limb rightArm = Limb();
+            LimbSolver2D rightArm = new LimbSolver2D();
+            ikManager.AddSolver(rightArm);
+            //rightArm.
+            //left arm
+        }*/
+
+
+    }
+
+    //private IKChain2D getLimbChain( Transform effectorTransform, Transform targetTransform )
 
     private void setupRagdollObjects()
     {
         SpriteSkin[] skins = new SpriteSkin[20];
         skins = gameObject.transform.GetComponentsInChildren<SpriteSkin>();
 
+        //set the root bone off the name at the start
+        rootBone = gameObject.transform.Find("Root").gameObject;
+
+        float minRootDistance = Mathf.Infinity;
         //first get all the sprites involved
         foreach (SpriteSkin skin in skins)
         {
@@ -47,10 +136,10 @@ public class RagdollEditorSetup : MonoBehaviour
                 originalRotation.Add(skin.gameObject, skin.gameObject.transform.localEulerAngles);
                 originalPosition.Add(skin.gameObject, skin.gameObject.transform.localPosition);
 
-                //if the parent of this bone is the overall gameobject then it's the root bone
-                if (skin.boneTransforms[0].parent.gameObject == gameObject)
+                int curRootDist = getRootDistance(skin.boneTransforms[0].gameObject);
+                if (curRootDist < minRootDistance)
                 {
-                    rootBone = skin.boneTransforms[0].gameObject;
+                    minRootDistance = curRootDist;
                     rootSkin = skin.gameObject;
                 }
 
@@ -68,8 +157,12 @@ public class RagdollEditorSetup : MonoBehaviour
 
             //add polygoncollider2d
             if (!skin.gameObject.GetComponent<PolygonCollider2D>()) skin.gameObject.AddComponent<PolygonCollider2D>();
+
+            skin.gameObject.layer = LayerMask.NameToLayer("RagdollCollider");
+
         }
 
+        setDefaultBonesRecursive(rootBone);
 
         //Go through skins and figure out where to place hinge joints
         foreach (GameObject bone in boneToSkin.Keys)
@@ -124,7 +217,14 @@ public class RagdollEditorSetup : MonoBehaviour
         }
     }
 
+    private int getRootDistance(GameObject bone)
+    {
+        if (bone.name.ToLower() == "root") return 0;
 
+        return getRootDistance(bone.transform.parent.gameObject) + 1;
+
+
+    }
     private bool findHingePosition( GameObject skin, GameObject skinParent, out Vector3 position )
     {
         position = Vector3.zero;
@@ -205,16 +305,6 @@ public class RagdollEditorSetup : MonoBehaviour
         {
             upperAngle = startAngle - 100;
             lowerAngle = startAngle + 30;
-            /*if (jointName.Contains("r_"))
-            {
-                upperAngle = startAngle - 100;
-                lowerAngle = startAngle + 30;
-            }
-            else
-            {
-                upperAngle = startAngle + 100;
-                lowerAngle = startAngle - 30;
-            }*/
         }
 
         if (jointName.Contains("knee") || jointName.Contains("calf"))
@@ -230,7 +320,7 @@ public class RagdollEditorSetup : MonoBehaviour
         }
     }
 
-private Rigidbody2D findHingeConnectedRigidbody(GameObject bone, GameObject skin)
+    private Rigidbody2D findHingeConnectedRigidbody(GameObject bone, GameObject skin)
     {
         //get the rigidbody from the from the parent bone and slot it into the connected rigid body slot
         Transform parentBoneTransform = bone.transform.parent;
@@ -259,5 +349,58 @@ private Rigidbody2D findHingeConnectedRigidbody(GameObject bone, GameObject skin
         return null;
     }
 
+    private void setDefaultBonesRecursive(GameObject bone)
+    {
+        foreach (Transform child in bone.transform) setDefaultBonesRecursive(child.gameObject);
+
+        string boneName = bone.name.ToLower();
+
+        if (boneName.Contains("root")) if (!rootBone) rootBone = bone;
+        if (boneName.Contains("head") || boneName.Contains("neck")) if (!neckBone) neckBone = bone;
+        if (boneName.Contains("shoulder"))
+        {
+            if (boneName.Contains("r_") && !shoulderBoneRight) shoulderBoneRight = bone;
+            else if (!shoulderBoneLeft) shoulderBoneLeft = bone;
+        }
+
+        if (boneName.Contains("elbow") || boneName.Contains("forearm"))
+        {
+            if (boneName.Contains("r_") && !elbowBoneRight) elbowBoneRight = bone;
+            else if (!elbowBoneLeft) elbowBoneLeft = bone;
+        }
+
+        if (boneName.Contains("hand") || boneName.Contains("wrist"))
+        {
+            if (boneName.Contains("r_") && !wristBoneRight) wristBoneRight = bone;
+            else if (!wristBoneLeft) wristBoneLeft = bone;
+        }
+        if (boneName.Contains("hip") || boneName.Contains("thigh"))
+        {
+            if (boneName.Contains("r_") && !hipBoneRight) hipBoneRight = bone;
+            else if (!hipBoneLeft) hipBoneLeft = bone;
+        }
+
+        if (boneName.Contains("knee") || boneName.Contains("calf"))
+        {
+            if (boneName.Contains("r_") && !kneeBoneRight) kneeBoneRight = bone;
+            else if (!kneeBoneLeft) kneeBoneLeft = bone;
+        }
+
+        if (boneName.Contains("ankle") || boneName.Contains("foot"))
+        {
+            if (boneName.Contains("r_") && !ankleBoneRight) ankleBoneRight = bone;
+            else if (!ankleBoneLeft) ankleBoneLeft = bone;
+        }
+    }
+
+
+    public GameObject getRootBone()
+    {
+        return rootBone;
+    }
+    public GameObject getRootSkin()
+    {
+        return rootSkin;
+    }
 
 }

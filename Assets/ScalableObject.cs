@@ -23,6 +23,8 @@ public class ScalableObject : MonoBehaviour
     private float throwablePercentOfPlayer = .35f; //capsule height 512, circle 256
     private bool _isFixedObject;
 
+    private LayerMask maxScaleLayermask;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -47,8 +49,6 @@ public class ScalableObject : MonoBehaviour
         {
             setRBConstraints(true, true, true);
         }
-
-
     }
 
     // Update is called once per frame
@@ -240,19 +240,9 @@ public class ScalableObject : MonoBehaviour
         return maxDistance / currentDistance;
     }
 
-        public RaycastHit2D shootColliderRay(Vector2 direction)
+    public RaycastHit2D shootColliderRay(Vector2 direction)
     {
-        Collider2D collider = gameObject.GetComponent<Collider2D>();
-        //set up hit array for output
-        RaycastHit2D[] hitResults = new RaycastHit2D[1];
-        int numHits = collider.Raycast(direction, hitResults);
-
-        if (numHits == 0 || hitResults[0].point == null)
-        {
-            return new RaycastHit2D();
-        }
-
-        return hitResults[0];
+        return shootColliderRay(direction, gameObject.GetComponent<Collider2D>());
     }
 
     public RaycastHit2D shootColliderRay(Vector2 direction, Collider2D collider)
@@ -261,12 +251,17 @@ public class ScalableObject : MonoBehaviour
         RaycastHit2D[] hitResults = new RaycastHit2D[1];
         int numHits = collider.Raycast(direction, hitResults);
 
-        if (numHits == 0 || hitResults[0].point == null)
+        foreach (RaycastHit2D rayHit in hitResults)
         {
-            return new RaycastHit2D();
+            //If the thing we hit has an active rigidbody, keep looking for a static object
+            Rigidbody2D rayHitRB = rayHit.collider.GetComponent<Rigidbody2D>();
+            if (rayHitRB && rayHitRB.simulated && !rayHitRB.isKinematic) continue;
+
+            return rayHit;
         }
 
-        return hitResults[0];
+
+        return new RaycastHit2D();
     }
 
 
@@ -309,6 +304,11 @@ public class ScalableObject : MonoBehaviour
         }
     }
 
+    public bool isEnlarging()
+    {
+        return targetScale.x > gameObject.transform.localScale.x;
+    }
+
     private void setRBConstraints(bool freezeX, bool freezeY, bool freezeRotation )
     {
         RigidbodyConstraints2D rbc2d = new RigidbodyConstraints2D();
@@ -318,6 +318,22 @@ public class ScalableObject : MonoBehaviour
         if (freezeRotation) rbc2d = rbc2d | RigidbodyConstraints2D.FreezeRotation;
 
         rigidBody.constraints = rbc2d;
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        //Debug.Log(collision.collider.gameObject + " " + LayerMask.LayerToName( collision.collider.gameObject.layer ) + " -> " + LayerMask.LayerToName(gameObject.layer));
+        /*PlayerController playerScript = collision.gameObject.GetComponent<PlayerController>();
+        //if we collided with a player, halt any scaling we are trying to do, and make the player drop the object
+        if (playerScript)
+        {
+            //stop scaling
+            targetScale = gameObject.transform.localScale;
+
+            //stop dragging
+            playerScript.stopDragging();
+
+        }*/
     }
 
 }

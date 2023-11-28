@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SocialPlatforms;
 
 public enum GunMode
 {
@@ -127,6 +128,7 @@ public class PlayerController : MonoBehaviour
     private float shoulderGunYOffset;
     
     private float oldGravityScale;
+    //public int oldLayer;
     public GunMode gunMode;
 
     private bool usingGun = false;
@@ -235,19 +237,27 @@ public class PlayerController : MonoBehaviour
         //We succeeded in grabbing the object
         scalableScript.unfreezeObject();
         draggedObject = scalableObject;
+        
         oldGravityScale = draggedObject.GetComponent<Rigidbody2D>().gravityScale;
+        //oldLayer = draggedObject.layer;
+        
         draggedObject.GetComponent<Rigidbody2D>().gravityScale = 0;
         draggedObject.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
-        
+        draggedObject.layer = LayerMask.NameToLayer("DraggedObject");
+
+        //draggedObject.GetComponent<Collider2D>().excludeLayers = oldColliderFilters & LayerMask.NameToLayer("Player");
+
 
         return true;
     }
 
-    private void stopDragging()
+    public void stopDragging()
     {
         if(draggedObject)
         {
             draggedObject.GetComponent<Rigidbody2D>().gravityScale = oldGravityScale;
+            draggedObject.layer = LayerMask.NameToLayer("Scalable");
+
         }
         draggedObject = null;
         isDragging = false;
