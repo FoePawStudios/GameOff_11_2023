@@ -406,8 +406,6 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        
-
         //First get the amount to rotate the shoulder to look at the mouse point
         Vector3 gunPointVector = new Vector3(mousePos.x - gunObject.transform.position.x, mousePos.y - gunObject.transform.position.y);
 
