@@ -8,7 +8,9 @@ public class Enemy : MonoBehaviour
 {
     public float viewDistance = 100f;
     public float viewAngle = 45;
-    public float chargeTime = 1f;
+    public float chargeTime = 2f;
+    public float shootCooldown = 5f;
+    public float defaultLaserAlpha = .1f;
 
     private RagdollUpdate ragdollUpdateScript;
     private float enlargeForceMagnitude = 300f;
@@ -25,6 +27,8 @@ public class Enemy : MonoBehaviour
 
     private bool chargingShot = false;
     private float chargeStart = 0;
+    private bool isOnShootCooldown = false;
+    private float shootCooldownStart = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -40,8 +44,9 @@ public class Enemy : MonoBehaviour
         //set up view cone collider according to view range and view angle
         updateViewCone();
 
-        laserLine = gameObject.AddComponent<LineRenderer>();
-        laserLine.enabled = false;
+        laserLine = gameObject.GetComponent<LineRenderer>();
+        //if(!laserLine) laserLine = gameObject.AddComponent<LineRenderer>();
+        //laserLine.enabled = false;
 
     }
 
@@ -89,36 +94,91 @@ public class Enemy : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(chargingShot)
+        if(isOnShootCooldown && Time.time - shootCooldownStart > shootCooldown)
         {
+            isOnShootCooldown = false;
+            setLaserAlpha(defaultLaserAlpha);
+        }
+
+        UpdateLaserLine();
+
+        if (chargingShot)
+        {
+            //If we finished charging a shot, shoot it and enter cooldown
             if(Time.time - chargeStart > chargeTime)
             {
-                chargingShot = false;
-                chargeTime = 0f;
-
-                //shoot the physical bullet at the player
+                shootShot();
 
             }
+            //otherwise just indicate we are charging a shot
             else
             {
-                //shoot ray at targeting point to see where the laser should end
-                RaycastHit2D rayHit = Physics2D.Raycast(gunExit.transform.position, laserAimingAt - (Vector2)gunExit.transform.position);
-
-                laserLine.enabled = true;
-                laserLine.SetPosition(0, gunExit.transform.position);
-                laserLine.SetPosition(1, rayHit.point);
-
                 //lerp laser color or transparency or luminance or something higher according to charge time
-
+                setLaserAlpha(Mathf.Clamp((Time.time - chargeStart) / chargeTime, defaultLaserAlpha, 1));
             }
         }
-        if(!chargingShot && playerInLOS())
+
+        if(playerInLOS())
         {
-            chargingShot = true;
-            chargeStart = Time.time;
             aimAtPlayer();
+
+            if(!chargingShot && !isOnShootCooldown) 
+            {
+                chargingShot = true;
+                chargeStart = Time.time;
+            }
         }
-        
+    }
+
+    private void shootShot()
+    {
+        chargingShot = false;
+        setLaserAlpha(0);
+
+        RaycastHit2D rayHit = ShootRayFromGun();
+
+        //if we hit the player send them back to their last checkpoint
+d        if(rayHit.collider.gameObject == player || rayHit.collider.gameObject.transform.IsChildOf(player.transform))
+        {
+            player.GetComponent<PlayerController>().respawnAtCheckpoint();
+        }
+
+        isOnShootCooldown = true;
+        shootCooldownStart = Time.time;
+    }
+
+    private void UpdateLaserLine()
+    {
+        RaycastHit2D rayHit = ShootRayFromGun();
+
+        //once we have found something that isn't us, draw update the line and return
+        laserLine.SetPosition(0, gunExit.transform.position);
+        laserLine.SetPosition(1, rayHit.point);
+
+    }
+
+    private RaycastHit2D ShootRayFromGun()
+    {
+        //shoot ray at targeting point to see where the laser should end
+        RaycastHit2D[] rayHits = Physics2D.RaycastAll(gunExit.transform.position, gunExit.transform.position - gunBone.transform.position);
+
+        foreach (RaycastHit2D rayHit in rayHits)
+        {
+            //don't count anything that's a child of this enemy
+            if (rayHit.collider.gameObject.transform.IsChildOf(gameObject.transform)) continue;
+
+            return rayHit;
+        }
+
+        return  new RaycastHit2D();
+    }
+
+    void setLaserAlpha(float alpha)
+    {
+        Color laserRed = Color.red;
+        laserRed.a = alpha;
+        laserLine.startColor = laserRed;
+        laserLine.endColor = laserRed;
     }
 
     bool playerInLOS()
@@ -148,7 +208,7 @@ public class Enemy : MonoBehaviour
 
             RaycastHit2D[] hits = new RaycastHit2D[10];
             viewConeCollider.Raycast(rayDirection, hits);
-            Debug.DrawRay(viewCone.transform.position, rayDirection, Color.red);
+            //Debug.DrawRay(viewCone.transform.position, rayDirection, Color.red);
             foreach (RaycastHit2D hit in hits)
             {
                 //if we hit a child collider of ours, just skip it
@@ -174,7 +234,7 @@ public class Enemy : MonoBehaviour
 
             hits = new RaycastHit2D[10];
             viewConeCollider.Raycast(rayDirection, hits);
-            Debug.DrawRay(viewCone.transform.position, rayDirection, Color.blue);
+            //Debug.DrawRay(viewCone.transform.position, rayDirection, Color.blue);
             foreach (RaycastHit2D hit in hits)
             {
                 //if we hit a child collider of ours, just skip it
@@ -199,7 +259,7 @@ public class Enemy : MonoBehaviour
 
             hits = new RaycastHit2D[10];
             viewConeCollider.Raycast(rayDirection, hits);
-            Debug.DrawRay(viewCone.transform.position, rayDirection, Color.green);
+            //Debug.DrawRay(viewCone.transform.position, rayDirection, Color.green);
             foreach (RaycastHit2D hit in hits)
             {
                 //if we hit a child collider of ours, just skip it
@@ -227,7 +287,7 @@ public class Enemy : MonoBehaviour
     {
         Vector2 gunDirection = player.GetComponent<Collider2D>().bounds.center - gunBone.transform.position;
 
-        Debug.DrawRay(gunBone.transform.position, gunDirection);
+        //Debug.DrawRay(gunBone.transform.position, gunDirection);
 
         //If we are flipped, flip the vector to match
         if (!facingRight())

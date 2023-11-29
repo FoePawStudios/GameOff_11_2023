@@ -19,6 +19,6 @@ public class DeathPoint : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        playerScript.activateDeathpoint();
+        playerScript.respawnAtCheckpoint();
     }
 }

@@ -547,7 +547,7 @@ public class PlayerController : MonoBehaviour
         checkPoint = gameObject.transform.position;
     }
 
-    public void activateDeathpoint()
+    public void respawnAtCheckpoint()
     {
         gameObject.transform.position = checkPoint;
     }
