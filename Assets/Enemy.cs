@@ -138,7 +138,7 @@ public class Enemy : MonoBehaviour
         RaycastHit2D rayHit = ShootRayFromGun();
 
         //if we hit the player send them back to their last checkpoint
-d        if(rayHit.collider.gameObject == player || rayHit.collider.gameObject.transform.IsChildOf(player.transform))
+       if(rayHit.collider.gameObject == player || rayHit.collider.gameObject.transform.IsChildOf(player.transform))
         {
             player.GetComponent<PlayerController>().respawnAtCheckpoint();
         }

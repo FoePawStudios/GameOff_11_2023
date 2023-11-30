@@ -3,45 +3,13 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.U2D.Animation;
-
-public class BoundSkin
-{
-    public GameObject skin;
-    public GameObject bone;
-
-    public Vector3 initialRelativePosition;
-    public Quaternion initialRelativeRotation;
-    public Vector3 relativeSkinStartRot;
-    public Vector3 lerpStartPosition;
-    public Quaternion lerpStartRotation;
-    public BoundSkin(GameObject skinObj, GameObject boneObj)
-    {
-        skin = skinObj;
-        bone = boneObj;
-        initialRelativePosition = skin.transform.position - bone.transform.position;
-        initialRelativeRotation = Quaternion.Inverse(bone.transform.rotation) * skin.transform.rotation;
-    }
-
-    public void moveSkinRelativeToBone(float lerpFraction) 
-    {
-        skin.transform.position = Vector3.Lerp(lerpStartPosition, bone.transform.position + initialRelativePosition, lerpFraction);
-        skin.transform.rotation = Quaternion.Lerp(lerpStartRotation, bone.transform.rotation * initialRelativeRotation, lerpFraction);
-    }
-
-    public void recordStartVals()
-    {
-        lerpStartPosition = skin.transform.position;
-        lerpStartRotation = skin.transform.rotation;
-    }
-
-}
+using UnityEngine.U2D.IK;
+using UnityEngine.XR;
 
 public class RagdollUpdate : MonoBehaviour
 {
 
     RagdollEditorSetup setupScript;
-
-    List<BoundSkin> boundSkins = new List<BoundSkin>();
 
     private float lerpTime = 1;
 
@@ -49,34 +17,16 @@ public class RagdollUpdate : MonoBehaviour
     private bool isRagdolled = false;
     private float lerpStartTime = 0;
 
-    private GameObject rootBone;
-    private GameObject rootSkin;
-
     // Start is called before the first frame update
     void Start()
     {
         setupScript = gameObject.GetComponent<RagdollEditorSetup>();
-
         if(!setupScript) setupScript = gameObject.AddComponent<RagdollEditorSetup>();
-
-        if (setupScript.skinToBone == null) return;
-
-        foreach (GameObject skin in setupScript.skinToBone.Keys)
-        {
-            boundSkins.Add(new BoundSkin(skin, setupScript.skinToBone[skin]));
-        }
-
-        rootBone = setupScript.getRootBone();
-        rootSkin = setupScript.getRootSkin();
-
     }
 
     // Update is called once per frame
     void Update()
     {
-        //if we didn't retrieve the bones successfully, try again
-        if (boundSkins.Count == 0) Start();
-
         if (Input.GetKeyUp(KeyCode.T) && !isLERPing)
         {
             if (isRagdolled)
@@ -88,36 +38,6 @@ public class RagdollUpdate : MonoBehaviour
                 swapToRagdoll();
             }
         }
-
-        if (isLERPing) lerpSkins();
-    }
-
-    void lerpSkins()
-    {
-        if (!isLERPing) return;
-
-        float lerpFraction = (Time.time - lerpStartTime) / lerpTime;
-
-        foreach (BoundSkin boundSkin in boundSkins)
-        {
-            boundSkin.moveSkinRelativeToBone(lerpFraction);
-            if (lerpFraction >= 1) boundSkin.skin.GetComponent<SpriteSkin>().enabled = true;
-        }
-
-        if (lerpFraction >= 1)
-        {
-            isLERPing = false;
-            lerpStartTime = 0;
-            isRagdolled = false;
-
-            //enable the overall animation collider and rigidbody
-            gameObject.GetComponent<Collider2D>().enabled = true;
-
-            //enable rigidbody simulation
-            gameObject.GetComponent<Rigidbody2D>().simulated = true;
-            gameObject.GetComponent<Rigidbody2D>().isKinematic = false;
-
-        }
     }
 
     public void swapToAnimation()
@@ -126,44 +46,31 @@ public class RagdollUpdate : MonoBehaviour
 
         isRagdolled = false;
 
-        //move root bone below body
-        Vector3 newRootPos = findFloorBeneathSkins();
-        //rootLERPMovement = newRootPos - rootBone.transform.position;
-        rootBone.transform.position = newRootPos;
-
-
-        foreach (BoundSkin boundSkin in boundSkins)
+        //turn on IK solver before swapping to animation
+        gameObject.GetComponent<IKManager2D>().weight = 1f;
+        gameObject.GetComponent<IKManager2D>().enabled = true;
+        foreach (LimbSolver2D limbIK in gameObject.GetComponents<LimbSolver2D>())
         {
-            boundSkin.recordStartVals();
-
-            //disable rigidbody simulation
-            boundSkin.skin.GetComponent<Rigidbody2D>().simulated = false;
-            boundSkin.skin.GetComponent<Rigidbody2D>().isKinematic = true;
+            limbIK.weight = 1f;
+            limbIK.gameObject.SetActive(true);
         }
 
-        //tell the update function to work on LERPing the body parts to the animation location
-        isLERPing = true;
-        lerpStartTime = Time.time;
-    }
-
-    Vector3 findFloorBeneathSkins()
-    {
-        //shoot a ray downwards from root skin collider
-        RaycastHit2D[] rayHits = new RaycastHit2D[50];
-        int rayHitNum = rootSkin.GetComponent<Collider2D>().Raycast(Vector2.down, rayHits);
-
-        Vector3 newRootPos = Vector3.zero;
-
-        //go through hits and fine one that isn't part of the ragdoll skins
-        for (int i = 0; i < rayHitNum; i++)
+        foreach (GameObject bone in setupScript.boneToSkin.Keys)
         {
-            if (!setupScript.skinToBone.ContainsKey(rayHits[i].collider.gameObject))
+            Rigidbody2D boneRB = bone.GetComponent<Rigidbody2D>();
+            if (boneRB)
             {
-                newRootPos = rayHits[i].point;
-                return newRootPos;
+                bone.GetComponent<Rigidbody2D>().simulated = false;
+                bone.GetComponent<Rigidbody2D>().isKinematic = true;
             }
         }
-        return newRootPos;
+
+        foreach (GameObject skin in setupScript.skinToBone.Keys)
+        {
+            //disable sprite skin components
+            skin.GetComponent<SpriteSkin>().enabled = true;
+        }
+
     }
 
     public void swapToRagdoll()
@@ -173,14 +80,27 @@ public class RagdollUpdate : MonoBehaviour
 
         isRagdolled = true;
 
-        foreach (GameObject skin in setupScript.skinToBone.Keys)
+        //turn off IK solver before swapping to ragdoll
+        gameObject.GetComponent<IKManager2D>().weight = 0f;
+        gameObject.GetComponent<IKManager2D>().enabled = false;
+        foreach (LimbSolver2D limbIK in gameObject.GetComponents<LimbSolver2D>())
+        {
+            limbIK.weight = 0f;
+            limbIK.gameObject.SetActive(false);
+        }
+        
+
+        /*foreach (GameObject skin in setupScript.skinToBone.Keys)
         {
             //disable sprite skin components
-            skin.GetComponent<SpriteSkin>().enabled = false;
+            //skin.GetComponent<SpriteSkin>().enabled = false;
+        }*/
 
+        foreach (GameObject bone in setupScript.boneToSkin.Keys)
+        {
             //enable rigidbody simulation
-            skin.GetComponent<Rigidbody2D>().simulated = true;
-            skin.GetComponent<Rigidbody2D>().isKinematic = false;
+            bone.GetComponent<Rigidbody2D>().simulated = true;
+            bone.GetComponent<Rigidbody2D>().isKinematic = false;
         }
 
         //disable the overall animation collider and rigidbody
@@ -194,17 +114,13 @@ public class RagdollUpdate : MonoBehaviour
     public void addForceToRagdoll(Vector2 force)
     {
         if (!isRagdolled) return;
-
-        //rootSkin.GetComponent<Rigidbody2D>().velocity = force;
-        rootSkin.GetComponent<Rigidbody2D>().AddRelativeForce(force, ForceMode2D.Impulse);
-        //addForceToRagdoll(force, rootSkin.GetComponent<Rigidbody2D>().transform.localPosition);
+        setupScript.getRootBone().GetComponent<Rigidbody2D>().AddRelativeForce(force, ForceMode2D.Impulse);
     }
 
     public void addForceToRagdoll(Vector2 force, Vector2 position)
     {
         if(!isRagdolled) return;
-
-        rootSkin.GetComponent<Rigidbody2D>().AddForceAtPosition(force, position);
+        setupScript.getRootBone().GetComponent<Rigidbody2D>().AddForceAtPosition(force, position);
 
     }
 
