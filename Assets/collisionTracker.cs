@@ -5,8 +5,8 @@ using UnityEngine;
 public class collisionTracker : MonoBehaviour
 {
     public List<Collider2D> activelyCollidingList = new List<Collider2D>(); 
-    private bool includeTrigger=false;
-    private bool includeCollider=true;
+    public bool includeTrigger=false;
+    public bool includeCollider=true;
     // Start is called before the first frame update
     void Start()
     {
@@ -39,7 +39,6 @@ public class collisionTracker : MonoBehaviour
         {
             activelyCollidingList.Add(collision.collider);
         }
-        
     }
 
 

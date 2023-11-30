@@ -169,7 +169,6 @@ public class PlayerController : MonoBehaviour
         moveProjectedShot();
         checkDragging();
         handleGunAnim();
-
     }
 
     private void FixedUpdate()

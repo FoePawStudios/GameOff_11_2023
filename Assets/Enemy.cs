@@ -23,8 +23,6 @@ public class Enemy : MonoBehaviour
     private LineRenderer laserLine;
     private Vector2 laserAimingAt;
 
-    private bool playerInViewCone = false;
-
     private bool chargingShot = false;
     private float chargeStart = 0;
     private bool isOnShootCooldown = false;
@@ -36,10 +34,13 @@ public class Enemy : MonoBehaviour
         ragdollUpdateScript = gameObject.GetComponent<RagdollUpdate>();
 
         gameObject.layer = LayerMask.NameToLayer("Enemy");
-        //shoulderBone = gameObject.transform.Find("R_Shoulder").gameObject;
-        //gunExit = gameObject.transform.Find("GunExit").gameObject;
+        
         player = GameObject.FindGameObjectWithTag("Player");
-        //viewCone = gameObject.get ("ViewCone").gameObject;
+
+        //We set these in the editor now instead of dynamically finding them ***********
+        //gunExit = gameObject.transform.Find("GunExit").gameObject;
+        //gunBone = gunExit.transform.parent.gameObject;
+        //viewCone = gameObject.transform.Find("ViewCone").gameObject;
 
         //set up view cone collider according to view range and view angle
         updateViewCone();
@@ -49,22 +50,6 @@ public class Enemy : MonoBehaviour
         //laserLine.enabled = false;
 
     }
-
-    /*private GameObject DFSForObjectWithName(GameObject searchObject, string name)
-    { 
-        if(!searchObject) return null;
-        else if( searchObject.name.Contains(name) ) return searchObject;
-        else
-        {
-            for(int i = 0; i < searchObject.transform.childCount; i++ )
-            {
-                GameObject returnObj = DFSForObjectWithName(searchObject.transform.GetChild(i), name);
-                if(returnObj) return returnObj;
-            }
-        }
-
-        return null;
-    }*/
 
     private void updateViewCone()
     {
@@ -198,7 +183,7 @@ public class Enemy : MonoBehaviour
         }
 
         //if player is in view cone AND is in LOS, aim sniper at them
-        if (playerInViewCone)
+        if (isPlayerInViewCone())
         {
             Collider2D playerCollider = player.GetComponent<Collider2D>();
             Collider2D viewConeCollider = viewCone.GetComponent<Collider2D>();
@@ -337,22 +322,20 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter2D(Collider2D collider)
+    bool isPlayerInViewCone()
     {
-        if (collider.gameObject.tag == "Player" )
-        {
-            playerInViewCone = true;
-        }
-    }
+        List<Collider2D> activeTriggers = viewCone.GetComponent<collisionTracker>().activelyCollidingList;
 
-    private void OnTriggerExit2D(Collider2D collider)
-    {
-        if (collider.gameObject.tag == "Player")
+        foreach( Collider2D trigger in activeTriggers ) 
         {
-            playerInViewCone = false;
+            if (trigger.gameObject == player || trigger.gameObject.transform.IsChildOf(player.transform))
+            {
+                return true;
+            }
         }
-    }
 
+        return false;
+    }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {

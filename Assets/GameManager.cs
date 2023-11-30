@@ -12,7 +12,7 @@ public class GameManager : MonoBehaviour
     public ScalableObject scalableScript;
     public LayerMask scalableLayer;
     public bool debugOn = false;
-    private bool isPaused = false;
+    //private bool isPaused = false;
 
     // Start is called before the first frame update
     void Start()

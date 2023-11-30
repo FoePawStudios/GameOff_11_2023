@@ -25,8 +25,6 @@ public class RagdollEditorSetup : MonoBehaviour
     private Rigidbody2D animationRigidBody;
     private CapsuleCollider2D animationCollider;
 
-    private IKManager2D ikManager;
-
     public GameObject rootBone;
     public GameObject neckBone;
     public GameObject shoulderBoneLeft;
@@ -79,7 +77,7 @@ void Start()
             if (skinCollider.bounds.max.y > yMax) yMax = skinCollider.bounds.max.y;
             if (skinCollider.bounds.min.y < yMin) yMin = skinCollider.bounds.min.y;
 
-            if (skinCollider.bounds.max.x - skinCollider.bounds.min.x > width)
+            if (skinCollider.bounds.max.x - skinCollider.bounds.min.x > width && !skinCollider.gameObject.name.Contains("Gun"))
             {
                 width = skinCollider.bounds.max.x - skinCollider.bounds.min.x;
             }

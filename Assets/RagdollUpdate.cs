@@ -11,11 +11,11 @@ public class RagdollUpdate : MonoBehaviour
 
     RagdollEditorSetup setupScript;
 
-    private float lerpTime = 1;
+    //private float lerpTime = 1;
 
     private bool isLERPing = false;
     private bool isRagdolled = false;
-    private float lerpStartTime = 0;
+    //private float lerpStartTime = 0;
 
     // Start is called before the first frame update
     void Start()
