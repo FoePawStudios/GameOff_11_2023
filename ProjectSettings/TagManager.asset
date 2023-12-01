@@ -15,6 +15,7 @@ TagManager:
   - BackSide
   - feet
   - ViewCone
+  - WinText
   layers:
   - Default
   - TransparentFX

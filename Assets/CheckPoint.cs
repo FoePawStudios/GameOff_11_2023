@@ -19,8 +19,10 @@ public class CheckPoint : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        playerScript.activateCheckpoint();
-        gameObject.SetActive(false);
+        if(collision.gameObject == playerScript.gameObject)
+        {
+            playerScript.activateCheckpoint();
+            gameObject.SetActive(false);
+        }
     }
-
 }

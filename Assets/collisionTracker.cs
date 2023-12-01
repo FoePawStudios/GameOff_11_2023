@@ -7,10 +7,10 @@ public class collisionTracker : MonoBehaviour
     public List<Collider2D> activelyCollidingList = new List<Collider2D>(); 
     public bool includeTrigger=false;
     public bool includeCollider=true;
+    public List<GameObject> includeObjectList = new List<GameObject>();
     // Start is called before the first frame update
     void Start()
     {
-
     }
 
     // Update is called once per frame
@@ -28,7 +28,17 @@ public class collisionTracker : MonoBehaviour
     {
         if (includeTrigger)
         {
-            activelyCollidingList.Add(collider);
+            if(includeObjectList.Count > 0)
+            {
+                if( includeObjectList.Contains( collider.gameObject ) )
+                {
+                    activelyCollidingList.Add(collider);
+                }
+            }
+            else
+            {
+                activelyCollidingList.Add(collider);
+            }
         }
         
     }
@@ -37,7 +47,17 @@ public class collisionTracker : MonoBehaviour
     {
         if (includeCollider)
         {
-            activelyCollidingList.Add(collision.collider);
+            if (includeObjectList.Count > 0)
+            {
+                if (includeObjectList.Contains(collision.collider.gameObject))
+                {
+                    activelyCollidingList.Add(collision.collider);
+                }
+            }
+            else
+            {
+                activelyCollidingList.Add(collision.collider);
+            }
         }
     }
 
@@ -46,7 +66,17 @@ public class collisionTracker : MonoBehaviour
     {
         if (includeTrigger)
         {
-            activelyCollidingList.Remove(collider);
+            if (includeObjectList.Count > 0)
+            {
+                if (includeObjectList.Contains(collider.gameObject))
+                {
+                    activelyCollidingList.Remove(collider);
+                }
+            }
+            else
+            {
+                activelyCollidingList.Remove(collider);
+            }
         }
     }
 
@@ -54,7 +84,17 @@ public class collisionTracker : MonoBehaviour
     {
         if (includeCollider)
         {
-            activelyCollidingList.Remove(collision.collider);
+            if (includeObjectList.Count > 0)
+            {
+                if (includeObjectList.Contains(collision.collider.gameObject))
+                {
+                    activelyCollidingList.Remove(collision.collider);
+                }
+            }
+            else
+            {
+                activelyCollidingList.Remove(collision.collider);
+            }
         }
     }
 }

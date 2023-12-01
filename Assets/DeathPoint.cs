@@ -4,11 +4,10 @@ using UnityEngine;
 
 public class DeathPoint : MonoBehaviour
 {
-    private PlayerController playerScript;
     // Start is called before the first frame update
     void Start()
     {
-        playerScript = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>();
+
     }
 
     // Update is called once per frame
@@ -17,8 +16,12 @@ public class DeathPoint : MonoBehaviour
 
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    private void OnTriggerEnter2D(Collider2D collider)
     {
-        playerScript.respawnAtCheckpoint();
+        PlayerController playerScript = collider.gameObject.GetComponent<PlayerController>();
+        if (playerScript) playerScript.respawnAtCheckpoint();
+
+        ScalableObject scalableObjectScript = collider.gameObject.GetComponent<ScalableObject>();
+        if (scalableObjectScript) scalableObjectScript.respawn();
     }
 }

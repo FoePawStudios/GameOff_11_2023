@@ -11,32 +11,32 @@
             "scale": 3.7703124999999997,
             "selectedLayer": 1,
             "viewCenter": {
-                "x": 126.51471197679237,
-                "y": 86.99544135930377
+                "x": 126.24948197264816,
+                "y": 86.73021135515955
             }
         },
         "C:/Users/mccar/Documents/Unity Projects/GameOff2023/Assets/Maps/Rules/PrototypeReplace1.tmx": {
             "scale": 1.8851562499999999,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 125.71902196435968,
-                "y": 76.91670120182346
+                "x": 125.18856195607128,
+                "y": 76.386241193535
             }
         },
         "C:/Users/mccar/Documents/Unity Projects/GameOff2023/Assets/Maps/Rules/PrototypeReplace2.tmx": {
             "scale": 1.8851562499999999,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": -0.5304600082884576,
-                "y": 79.0385412349772
+                "x": -1.0609200165769153,
+                "y": 78.50808122668877
             }
         },
         "C:/Users/mccar/Documents/Unity Projects/GameOff2023/Assets/Maps/TestLevel.tmx": {
-            "scale": 1,
+            "scale": 2,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 400,
-                "y": -30
+                "x": 621,
+                "y": -179.5
             }
         },
         "LaboratoryTileset.tsx": {
@@ -47,18 +47,15 @@
         }
     },
     "openFiles": [
-        "C:/Users/mccar/Documents/Unity Projects/GameOff2023/Assets/Maps/TestLevel.tmx",
-        "C:/Users/mccar/Documents/Unity Projects/GameOff2023/Assets/Maps/Rules/PrototypeReplace1.tmx",
-        "C:/Users/mccar/Documents/Unity Projects/GameOff2023/Assets/Maps/Rules/PrototypeReplace2.tmx",
-        "C:/Users/mccar/Documents/Unity Projects/GameOff2023/Assets/Maps/Rules/AddDetails.tmx"
+        "C:/Users/mccar/Documents/Unity Projects/GameOff2023/Assets/Maps/TestLevel.tmx"
     ],
     "project": "",
     "property.type": "bool",
     "recentFiles": [
+        "C:/Users/mccar/Documents/Unity Projects/GameOff2023/Assets/Maps/TestLevel.tmx",
         "C:/Users/mccar/Documents/Unity Projects/GameOff2023/Assets/Maps/Rules/AddDetails.tmx",
         "C:/Users/mccar/Documents/Unity Projects/GameOff2023/Assets/Maps/Rules/PrototypeReplace2.tmx",
         "C:/Users/mccar/Documents/Unity Projects/GameOff2023/Assets/Maps/Rules/PrototypeReplace1.tmx",
-        "C:/Users/mccar/Documents/Unity Projects/GameOff2023/Assets/Maps/TestLevel.tmx",
         "LaboratoryTileset.tsx",
         "C:/Users/mccar/Documents/Unity Projects/GameOff2023/Assets/Maps/Rules/TemplateRuleStep3.tmx",
         "C:/Users/mccar/Documents/Unity Projects/GameOff2023/Assets/Maps/Rules/TemplateRuleStep1.tmx",

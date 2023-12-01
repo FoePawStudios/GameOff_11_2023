@@ -169,13 +169,13 @@ public class Enemy : MonoBehaviour
     bool playerInLOS()
     {
         //Make sure the enemy is facing the correct direction first
-        if (player.transform.position.x < gameObject.transform.position.x && facingRight())
+        if (!ragdollUpdateScript.isRagdolled() && player.transform.position.x < gameObject.transform.position.x && facingRight())
         {
             Vector3 tempScale = gameObject.transform.localScale;
             tempScale.x *= -1;
             gameObject.transform.localScale = tempScale;
         }
-        else if (player.transform.position.x > gameObject.transform.position.x && !facingRight())
+        else if (!ragdollUpdateScript.isRagdolled() && player.transform.position.x > gameObject.transform.position.x && !facingRight())
         {
             Vector3 tempScale = gameObject.transform.localScale;
             tempScale.x *= -1;

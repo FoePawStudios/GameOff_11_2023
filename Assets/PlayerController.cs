@@ -96,6 +96,7 @@ public class PlayerController : MonoBehaviour
     public float dragStrength = 5f;
     public LayerMask scalableLayer;
     private float mouseHoldTime = .1f;
+    private float shoulderGunYOffset = 0f;
 
     //Jump Variables
     public float jumpSpeed = 8;
@@ -108,8 +109,8 @@ public class PlayerController : MonoBehaviour
     
     private Vector2 inputVector;
     private Rigidbody2D rigidBody2d;
-    private GameObject gunObject;
-    private GameObject gunExit;
+    public GameObject gunAndArmsObject;
+    public GameObject gunExit;
     private GameObject ShootProjection;
     private GameObject aimingAt;
 
@@ -124,8 +125,6 @@ public class PlayerController : MonoBehaviour
 
     //private List<GameObject> groundCollisions = new List<GameObject>();
     //private List<GameObject> headCollisions = new List<GameObject>();
-
-    private float shoulderGunYOffset;
     
     private float oldGravityScale;
     //public int oldLayer;
@@ -143,10 +142,9 @@ public class PlayerController : MonoBehaviour
     {
         inputVector = new(0.0f, 0.0f);
         rigidBody2d = gameObject.GetComponent<Rigidbody2D>();
-        gunObject = GameObject.FindGameObjectWithTag("Gun");
-        gunExit = GameObject.FindGameObjectWithTag("gunExit");
+        //gunObject = GameObject.FindGameObjectWithTag("Gun");
+        //gunExit = GameObject.FindGameObjectWithTag("gunExit");      
         ShootProjection = GameObject.FindGameObjectWithTag("ShootProjection");
-        shoulderGunYOffset = Mathf.Abs( gunObject.transform.position.y - gunExit.transform.position.y );
         gunMode = GunMode.Max_Scale;
         checkPoint = gameObject.transform.position;
 
@@ -155,6 +153,7 @@ public class PlayerController : MonoBehaviour
         bodyCollisionTracker = gameObject.GetComponent<collisionTracker>();
         frontCollisionTracker = GameObject.FindGameObjectWithTag("FrontSide").GetComponent<collisionTracker>();
         backCollisionTracker = GameObject.FindGameObjectWithTag("BackSide").GetComponent<collisionTracker>();
+        shoulderGunYOffset = Mathf.Abs(gunAndArmsObject.transform.position.y - gunExit.transform.position.y);
     }
 
     // Update is called once per frame
@@ -185,7 +184,7 @@ public class PlayerController : MonoBehaviour
         {
             usingGun = true;
         }
-        gunObject.GetComponent<Animator>().SetBool("isUsing", usingGun);
+        gunAndArmsObject.GetComponent<Animator>().SetBool("isUsing", usingGun);
     }
 
 
@@ -406,7 +405,9 @@ public class PlayerController : MonoBehaviour
         }
 
         //First get the amount to rotate the shoulder to look at the mouse point
-        Vector3 gunPointVector = new Vector3(mousePos.x - gunObject.transform.position.x, mousePos.y - gunObject.transform.position.y);
+        Vector3 gunPointVector = new Vector3(mousePos.x - gunAndArmsObject.transform.position.x, mousePos.y - gunAndArmsObject.transform.position.y);
+
+        Debug.DrawRay(gunAndArmsObject.transform.position, gunPointVector);
 
         gunPointVector = gunPointVector.normalized;
 
@@ -416,16 +417,18 @@ public class PlayerController : MonoBehaviour
             gunPointVector.x *= -1;
         }
 
-
+        
         float absoluteRotation = Mathf.Rad2Deg * Mathf.Atan2(gunPointVector.y, gunPointVector.x);
-        float rotateDistance = absoluteRotation - gunObject.transform.localEulerAngles.z;
+        float rotateDistance = absoluteRotation - gunAndArmsObject.transform.localEulerAngles.z;
+
+        
 
         //Then calculate how much extra we need to rotate to have the actual gun barrel aim at the mouse point
-        float shoulderToMouseDist = Vector2.Distance(gunObject.transform.position, mousePos);
+        float shoulderToMouseDist = Vector2.Distance(gunAndArmsObject.transform.position, mousePos);
         float hypotenuseDistance = Mathf.Sqrt(Mathf.Pow(shoulderToMouseDist, 2) + Mathf.Pow(shoulderGunYOffset, 2));
         rotateDistance = rotateDistance + Mathf.Rad2Deg * Mathf.Asin(shoulderGunYOffset / hypotenuseDistance);
 
-        gunObject.transform.Rotate(0f, 0f, rotateDistance);
+        gunAndArmsObject.transform.Rotate(0f, 0f, rotateDistance);
     }
 
     void moveProjectedShot()
@@ -466,32 +469,35 @@ public class PlayerController : MonoBehaviour
 
     void handleGunActions()
     {
-        if (aimingAt == null) return;
+        GameObject objectToScale = draggedObject;
+        if (!objectToScale) objectToScale = aimingAt;
+        if (!objectToScale) return;
+
 
         if( Input.mouseScrollDelta.y != 0)
         {
-            aimingAt.GetComponent<ScalableObject>().changeScale(Input.mouseScrollDelta.y * Time.fixedDeltaTime * scaleRate);
+            objectToScale.GetComponent<ScalableObject>().changeScale(Input.mouseScrollDelta.y * Time.fixedDeltaTime * scaleRate);
             usingGun = true;
         }
 
         //Pressed Q
         if (Input.GetKeyUp( KeyCode.Q ))
         {
-            aimingAt.GetComponent<ScalableObject>().scaleToMin();
+            objectToScale.GetComponent<ScalableObject>().scaleToMin();
             usingGun = true;
         }
 
         //Pressed E
         if (Input.GetKeyUp(KeyCode.E))
         {
-            aimingAt.GetComponent<ScalableObject>().scaleToMax();
+            objectToScale.GetComponent<ScalableObject>().scaleToMax();
             usingGun = true;
         }
 
         //middle mouse click
         if (Input.GetMouseButtonDown(2))
         {
-            aimingAt.GetComponent<ScalableObject>().scaleToStart();
+            objectToScale.GetComponent<ScalableObject>().scaleToStart();
             usingGun = true;
         }
 
@@ -499,7 +505,7 @@ public class PlayerController : MonoBehaviour
 
     void moveGrabbedObject()
     {
-        if(isDragging) 
+        if(isDragging && draggedObject) 
         {
             Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             float mouseDistance = Vector2.Distance( gunExit.transform.position,  mousePos);

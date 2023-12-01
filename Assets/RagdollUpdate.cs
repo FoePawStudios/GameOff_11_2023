@@ -14,7 +14,7 @@ public class RagdollUpdate : MonoBehaviour
     //private float lerpTime = 1;
 
     private bool isLERPing = false;
-    private bool isRagdolled = false;
+    private bool _isRagdolled = false;
     //private float lerpStartTime = 0;
 
     // Start is called before the first frame update
@@ -29,7 +29,7 @@ public class RagdollUpdate : MonoBehaviour
     {
         if (Input.GetKeyUp(KeyCode.T) && !isLERPing)
         {
-            if (isRagdolled)
+            if (_isRagdolled)
             {
                 swapToAnimation();
             }
@@ -40,11 +40,17 @@ public class RagdollUpdate : MonoBehaviour
         }
     }
 
+    public bool isRagdolled()
+    {
+        return _isRagdolled;
+    }
+
+
     public void swapToAnimation()
     {
-        if (!isRagdolled || isLERPing) return;
+        if (!_isRagdolled || isLERPing) return;
 
-        isRagdolled = false;
+        _isRagdolled = false;
 
         //turn on IK solver before swapping to animation
         gameObject.GetComponent<IKManager2D>().weight = 1f;
@@ -76,9 +82,9 @@ public class RagdollUpdate : MonoBehaviour
     public void swapToRagdoll()
     {
         //don't try and do anything if we are already ragdolled or in the middle of LERPing
-        if (isRagdolled || isLERPing) return;
+        if (_isRagdolled || isLERPing) return;
 
-        isRagdolled = true;
+        _isRagdolled = true;
 
         //turn off IK solver before swapping to ragdoll
         gameObject.GetComponent<IKManager2D>().weight = 0f;
@@ -113,15 +119,22 @@ public class RagdollUpdate : MonoBehaviour
 
     public void addForceToRagdoll(Vector2 force)
     {
-        if (!isRagdolled) return;
-        setupScript.getRootBone().GetComponent<Rigidbody2D>().AddRelativeForce(force, ForceMode2D.Impulse);
+        if (!_isRagdolled ) return;
+        GameObject rootSkin = setupScript.getRootSkin();
+
+        if (!rootSkin || !setupScript.skinToBone.ContainsKey(rootSkin)) return;
+        GameObject rootSkinToBone = setupScript.skinToBone[rootSkin];
+        rootSkinToBone.GetComponent<Rigidbody2D>().AddRelativeForce(force, ForceMode2D.Impulse);
     }
 
     public void addForceToRagdoll(Vector2 force, Vector2 position)
     {
-        if(!isRagdolled) return;
-        setupScript.getRootBone().GetComponent<Rigidbody2D>().AddForceAtPosition(force, position);
+        if (!_isRagdolled) return;
+        GameObject rootSkin = setupScript.getRootSkin();
 
+        if (!rootSkin || setupScript.skinToBone.ContainsKey(rootSkin)) return;
+        GameObject rootSkinToBone = setupScript.skinToBone[rootSkin];
+        rootSkinToBone.GetComponent<Rigidbody2D>().AddForceAtPosition(force, position);
     }
 
 }

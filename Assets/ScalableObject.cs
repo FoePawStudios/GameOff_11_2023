@@ -11,10 +11,15 @@ public class ScalableObject : MonoBehaviour
     public bool fixedUntilInteractedWith = false;
     private bool isStillFixed = true;
 
-    private Vector2 originalScale;
+    private Quaternion originalRotation;
+    private Vector3 originalPosition;
+    private Vector3 originalScale;
     private Vector2 minScale;
     private Vector2 maxDefaultScale;
     private Vector3 targetScale;
+    private Vector3 startLERPScale;
+    private bool hit25 = false;
+    private bool hit50 = false;
 
     private Texture spriteTexture;
     private GameObject playerObject;
@@ -28,8 +33,11 @@ public class ScalableObject : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        originalPosition = gameObject.transform.position;
         originalScale = gameObject.transform.localScale;
+        originalRotation = gameObject.transform.rotation;
         targetScale = originalScale;
+        startLERPScale = originalScale;
         maxDefaultScale = originalScale * 10;
 
         if ( !gameObject.GetComponent<SpriteRenderer>() )
@@ -61,6 +69,23 @@ public class ScalableObject : MonoBehaviour
     {
         if (gameObject.transform.localScale.x != targetScale.x || gameObject.transform.localScale.y != targetScale.y)
         {
+            //if we are growing, check maxScale again at 50% size and 75% size
+            if( targetScale.x - gameObject.transform.localScale.x > .01 )
+            {
+                float totalScaleChange = targetScale.x - startLERPScale.x;
+                float currentScaleChange = gameObject.transform.localScale.x - startLERPScale.x;
+                if (currentScaleChange / totalScaleChange > .25 && !hit25)
+                {
+                    hit25 = true;
+                    targetScale = .9f * getMaxScale();
+                }
+                if (currentScaleChange / totalScaleChange > .5 && !hit50)
+                {
+                    hit50 = true;
+                    targetScale = .9f * getMaxScale();
+                }
+            }
+
             gameObject.transform.localScale = Vector3.Lerp(gameObject.transform.localScale, targetScale, lerpSpeed * Time.fixedDeltaTime);
         }
     }
@@ -68,6 +93,9 @@ public class ScalableObject : MonoBehaviour
     public void scaleToMax()
     {
         unfreezeObject();
+        startLERPScale = gameObject.transform.localScale;
+        hit25 = false;
+        hit50 = false;
         targetScale = .9f * getMaxScale();
     }
     public void scaleToMin()
@@ -304,6 +332,15 @@ public class ScalableObject : MonoBehaviour
         }
     }
 
+    public void freezeObject()
+    {
+        if (fixedUntilInteractedWith && !isStillFixed)
+        {
+            isStillFixed = true;
+            setRBConstraints(true, true, true);
+        }
+    }
+
     public bool isEnlarging()
     {
         return targetScale.x > gameObject.transform.localScale.x;
@@ -320,20 +357,17 @@ public class ScalableObject : MonoBehaviour
         rigidBody.constraints = rbc2d;
     }
 
+    public void respawn()
+    {
+        targetScale = originalScale;
+        gameObject.transform.localScale = originalScale;
+        gameObject.transform.position = originalPosition;
+        gameObject.transform.rotation = originalRotation;
+        freezeObject();
+    }
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        //Debug.Log(collision.collider.gameObject + " " + LayerMask.LayerToName( collision.collider.gameObject.layer ) + " -> " + LayerMask.LayerToName(gameObject.layer));
-        /*PlayerController playerScript = collision.gameObject.GetComponent<PlayerController>();
-        //if we collided with a player, halt any scaling we are trying to do, and make the player drop the object
-        if (playerScript)
-        {
-            //stop scaling
-            targetScale = gameObject.transform.localScale;
-
-            //stop dragging
-            playerScript.stopDragging();
-
-        }*/
     }
 
 }
